@@ -1,0 +1,477 @@
+﻿@using Assigmemt_Thanh_C4.Models.DataModels
+@using AssigmentC4_TrinhHuuThanh.Models.DataModels
+@model ChiTietSanPham
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var sanPham = ViewBag.SanPham as SanPham;
+    var dsMau = ViewBag.DanhSachMau as List<MauSacSanPham> ?? new List<MauSacSanPham>();
+    int tongSoLuong = dsMau.Sum(m => m.SoLuong);
+    bool daLuu = Model.ChiTietSanPhamID != 0;
+    var tenDM = sanPham?.DanhMuc?.TenDanhMuc?.ToLower() ?? "";
+    var loai = tenDM.Contains("ống kính") || tenDM.Contains("lens") ? "ong-kinh"
+              : tenDM.Contains("máy ảnh") || tenDM.Contains("camera") ? "may-anh"
+              : "phu-kien";
+}
+
+<style>
+    .mau-row {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: .7rem 1rem;
+        margin-bottom: .5rem;
+        border: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        flex-wrap: wrap;
+    }
+
+        .mau-row:hover {
+            background: #eef0f5;
+        }
+
+    .badge-ok {
+        background: #d4edda;
+        color: #155724;
+        padding: .25rem .55rem;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .badge-low {
+        background: #fff3cd;
+        color: #856404;
+        padding: .25rem .55rem;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .badge-out {
+        background: #f8d7da;
+        color: #721c24;
+        padding: .25rem .55rem;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .add-mau-card {
+        border: 2px dashed #667eea;
+        border-radius: 10px;
+        padding: 1rem;
+        background: #f0f2ff;
+    }
+
+    .notice-save {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: .7rem 1rem;
+        font-size: .88rem;
+        color: #856404;
+    }
+
+    .loai-tab {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .loai-btn {
+        padding: .45rem 1.1rem;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        background: #fff;
+        color: #6c757d;
+        font-size: .85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .loai-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: #fff;
+        }
+
+        .loai-btn:hover:not(.active) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+    .field-group {
+        display: none;
+    }
+
+        .field-group.show {
+            display: contents;
+        }
+
+    .sec-div {
+        grid-column: 1/-1;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #9199ad;
+        padding: .5rem 0 .2rem;
+        border-bottom: 1px solid #e9ecef;
+        margin-bottom: .25rem;
+    }
+
+    /* Thumbnail ảnh màu */
+    .mau-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 2px solid #dee2e6;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: transform .2s;
+    }
+
+        .mau-thumb:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+    .mau-thumb-ph {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        flex-shrink: 0;
+        border: 2px dashed #dee2e6;
+    }
+</style>
+
+<div class="row">
+    <!-- CỘT TRÁI -->
+    <div class="col-lg-4 mb-4">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white"><i class="fas fa-box"></i> Thông tin sản phẩm</div>
+            <div class="card-body">
+                @if (sanPham?.HinhAnh != null && sanPham.HinhAnh.Length > 0)
+                {
+                    <div class="text-center mb-3">
+                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(sanPham.HinhAnh)"
+                             style="max-width:100%;max-height:180px;border-radius:10px;" />
+                    </div>
+                }
+                <h5 class="card-title">@sanPham?.TenSanPham</h5>
+                <p class="mb-1"><strong>Mã SP:</strong> SP@sanPham?.SanPhamID.ToString("D6")</p>
+                <p class="mb-1"><strong>Danh mục:</strong> <span class="badge bg-primary">@sanPham?.DanhMuc?.TenDanhMuc</span></p>
+                <p class="mb-1"><strong>Thương hiệu:</strong> @sanPham?.ThuongHieu?.TenThuongHieu</p>
+                <p class="mb-1"><strong>Giá:</strong> <span class="text-danger">@sanPham?.Gia.ToString("N0") đ</span></p>
+                <hr />
+                <div class="alert @(tongSoLuong > 0 ? "alert-success" : "alert-secondary") py-2 mb-0">
+                    <i class="fas fa-palette"></i> <strong>Tổng tồn theo màu: @tongSoLuong</strong>
+                    @if (dsMau.Any())
+                    {
+                        <div class="mt-1">@foreach (var m in dsMau) {
+                        <small class="d-block">• @m.TenMau: <strong>@m.SoLuong</strong></small>
+                    }
+</div>
+                                        }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quản lý màu + ảnh -->
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="fas fa-palette"></i> Màu sắc & Ảnh</div>
+            <div class="card-body">
+                @if (!daLuu)
+                {
+                    <div class="notice-save"><i class="fas fa-exclamation-triangle"></i> Vui lòng <strong>Lưu thông số kỹ thuật</strong> bên phải trước.</div>
+                }
+                else
+                {
+                    @if (dsMau.Any())
+                    {
+                        <h6 class="text-muted mb-2">Phiên bản hiện có:</h6>
+                        @foreach (var mau in dsMau)
+                        {
+                            <div class="mau-row">
+                                <!-- Thumbnail -->
+                                @if (mau.HinhAnh != null && mau.HinhAnh.Length > 0)
+                                {
+                                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(mau.HinhAnh)"
+                                         class="mau-thumb"
+                                         onclick="showLightbox('data:image/jpeg;base64,@Convert.ToBase64String(mau.HinhAnh)','@mau.TenMau')"
+                                         title="Xem ảnh" />
+                                }
+                                else
+                                {
+                                    <div class="mau-thumb-ph" title="Chưa có ảnh">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                }
+
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">@mau.TenMau</div>
+                                    <small class="text-muted">@(mau.HinhAnh != null ? "Có ảnh" : "Chưa có ảnh")</small>
+                                </div>
+
+                                <span class="@(mau.SoLuong > 5 ? "badge-ok" : mau.SoLuong > 0 ? "badge-low" : "badge-out")">
+                                    @(mau.SoLuong > 0 ? $"{mau.SoLuong} cái" : "Hết")
+                                </span>
+
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="showEditMau(@mau.MauSacID,'@Html.Raw(mau.TenMau)',@mau.SoLuong)"
+                                        title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                @if (mau.HinhAnh != null)
+                                {
+                                    <form asp-action="XoaAnhMau" method="post" style="display:inline"
+                                          onsubmit="return confirm('Xóa ảnh của @mau.TenMau?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="mauSacId" value="@mau.MauSacID" />
+                                        <input type="hidden" name="sanPhamId" value="@sanPham?.SanPhamID" />
+                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Xóa ảnh">
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                <form asp-action="XoaMau" method="post" style="display:inline"
+                                      onsubmit="return confirm('Xóa màu @mau.TenMau?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="mauSacId" value="@mau.MauSacID" />
+                                    <input type="hidden" name="sanPhamId" value="@sanPham?.SanPhamID" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa màu">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                        <hr />
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-3"><i class="fas fa-info-circle"></i> Chưa có phiên bản nào.</p>
+                    }
+
+                    <!-- Form thêm màu mới với upload ảnh -->
+                    <div class="add-mau-card">
+                        <h6 class="mb-2 text-primary"><i class="fas fa-plus-circle"></i> Thêm phiên bản + ảnh</h6>
+                        <form asp-action="ThemMau" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="chiTietSanPhamId" value="@Model.ChiTietSanPhamID" />
+                            <input type="hidden" name="sanPhamId" value="@sanPham?.SanPhamID" />
+                            <div class="mb-2">
+                                <input type="text" name="tenMau" class="form-control form-control-sm"
+                                       placeholder="Tên màu / phiên bản (VD: Đen, Bạc...)"
+                                       required maxlength="50" />
+                            </div>
+                            <div class="mb-2">
+                                <input type="number" name="soLuong" class="form-control form-control-sm"
+                                       placeholder="Số lượng" min="0" required />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1 text-muted">Ảnh màu (JPG/PNG)</label>
+                                <input type="file" name="hinhAnhMau" class="form-control form-control-sm"
+                                       accept="image/*" onchange="previewAddImg(this)" />
+                                <div id="addImgWrap" style="display:none;margin-top:.5rem;">
+                                    <img id="addImgPreview" style="max-height:80px;border-radius:8px;border:1px solid #dee2e6;" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-plus"></i> Thêm
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: thông số kỹ thuật -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-info-circle"></i> Thông số kỹ thuật</span>
+                <small class="text-muted">Loại: <strong id="loaiLabel"></strong></small>
+            </div>
+            <div class="card-body">
+                <div class="loai-tab">
+                    <button type="button" class="loai-btn" data-loai="may-anh" onclick="chonLoai('may-anh')"><i class="fas fa-camera me-1"></i> Máy ảnh</button>
+                    <button type="button" class="loai-btn" data-loai="ong-kinh" onclick="chonLoai('ong-kinh')"><i class="fas fa-camera-retro me-1"></i> Ống kính</button>
+                    <button type="button" class="loai-btn" data-loai="phu-kien" onclick="chonLoai('phu-kien')"><i class="fas fa-bolt me-1"></i> Phụ kiện</button>
+                </div>
+
+                <form asp-action="ChiTietSanPham" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ChiTietSanPhamID" />
+                    <input type="hidden" asp-for="SanPhamID" />
+                    <input type="hidden" asp-for="SoLuong" value="@tongSoLuong" />
+
+                    <div class="row g-3">
+                        <div class="field-group" id="grp-may-anh">
+                            <div class="sec-div">📷 Thông số máy ảnh</div>
+                            <div class="col-md-6"><label asp-for="DoPhanGiai" class="form-label"></label><input asp-for="DoPhanGiai" class="form-control" placeholder="VD: 32.5 MP" /></div>
+                            <div class="col-md-6"><label asp-for="CamBien" class="form-label"></label><input asp-for="CamBien" class="form-control" placeholder="VD: APS-C CMOS" /></div>
+                            <div class="col-md-6"><label asp-for="ISO" class="form-label"></label><input asp-for="ISO" class="form-control" placeholder="VD: 100-25600" /></div>
+                            <div class="col-md-6"><label asp-for="OngKinh" class="form-label"></label><input asp-for="OngKinh" class="form-control" placeholder="VD: EF/EF-S mount" /></div>
+                            <div class="col-md-6"><label asp-for="KhauDo" class="form-label"></label><input asp-for="KhauDo" class="form-control" placeholder="VD: f/1.8 - f/22" /></div>
+                            <div class="col-md-6"><label asp-for="ChongRung" class="form-label"></label><input asp-for="ChongRung" class="form-control" placeholder="VD: 5 trục IBIS" /></div>
+                            <div class="col-md-6"><label asp-for="Video" class="form-label"></label><input asp-for="Video" class="form-control" placeholder="VD: 4K UHD 30fps" /></div>
+                            <div class="col-md-6"><label asp-for="ManHinh" class="form-label"></label><input asp-for="ManHinh" class="form-control" placeholder="VD: 3.0 inch xoay lật" /></div>
+                            <div class="col-md-6"><label asp-for="Pin" class="form-label"></label><input asp-for="Pin" class="form-control" placeholder="VD: LP-E6N, 1300 shots" /></div>
+                            <div class="col-md-6"><label asp-for="KetNoi" class="form-label"></label><input asp-for="KetNoi" class="form-control" placeholder="VD: WiFi, BT, USB-C" /></div>
+                            <div class="col-md-6"><label asp-for="KichThuoc" class="form-label"></label><input asp-for="KichThuoc" class="form-control" placeholder="VD: 140×105×77mm" /></div>
+                            <div class="col-md-6"><label asp-for="TrongLuong" class="form-label"></label><input asp-for="TrongLuong" class="form-control" placeholder="VD: 701g" /></div>
+                        </div>
+                        <div class="field-group" id="grp-ong-kinh">
+                            <div class="sec-div">🔭 Thông số ống kính</div>
+                            <div class="col-md-6"><label asp-for="TieuCu" class="form-label"></label><input asp-for="TieuCu" class="form-control" placeholder="VD: 50mm, 24-70mm" /></div>
+                            <div class="col-md-6"><label asp-for="KhauDo" class="form-label"></label><input asp-for="KhauDo" class="form-control" placeholder="VD: f/1.4 - f/22" /></div>
+                            <div class="col-md-6"><label asp-for="NgamLens" class="form-label"></label><input asp-for="NgamLens" class="form-control" placeholder="VD: Sony E-mount" /></div>
+                            <div class="col-md-6"><label asp-for="KhoangCachLayNet" class="form-label"></label><input asp-for="KhoangCachLayNet" class="form-control" placeholder="VD: 0.45m - ∞" /></div>
+                            <div class="col-md-6"><label asp-for="SoLaKhau" class="form-label"></label><input asp-for="SoLaKhau" class="form-control" placeholder="VD: 9 lá" /></div>
+                            <div class="col-md-6"><label asp-for="ChongRung" class="form-label"></label><input asp-for="ChongRung" class="form-control" placeholder="VD: OSS, IS, VR" /></div>
+                            <div class="col-md-6"><label asp-for="KichThuoc" class="form-label"></label><input asp-for="KichThuoc" class="form-control" placeholder="VD: Ø74×98mm" /></div>
+                            <div class="col-md-6"><label asp-for="TrongLuong" class="form-label"></label><input asp-for="TrongLuong" class="form-control" placeholder="VD: 281g" /></div>
+                            <div class="col-md-6"><label asp-for="ChatLieu" class="form-label"></label><input asp-for="ChatLieu" class="form-control" placeholder="VD: Thủy tinh quang học" /></div>
+                        </div>
+                        <div class="field-group" id="grp-phu-kien">
+                            <div class="sec-div">⚡ Thông số phụ kiện</div>
+                            <div class="col-md-6"><label asp-for="CongSuat" class="form-label"></label><input asp-for="CongSuat" class="form-control" placeholder="VD: 60W, GN58" /></div>
+                            <div class="col-md-6"><label asp-for="NhietMau" class="form-label"></label><input asp-for="NhietMau" class="form-control" placeholder="VD: 5500K" /></div>
+                            <div class="col-md-6"><label asp-for="CRI" class="form-label"></label><input asp-for="CRI" class="form-control" placeholder="VD: CRI ≥ 95" /></div>
+                            <div class="col-md-6"><label asp-for="TaiTrongToiDa" class="form-label"></label><input asp-for="TaiTrongToiDa" class="form-control" placeholder="VD: 10kg" /></div>
+                            <div class="col-md-6"><label asp-for="ChieuCaoToiDa" class="form-label"></label><input asp-for="ChieuCaoToiDa" class="form-control" placeholder="VD: 165cm" /></div>
+                            <div class="col-md-6"><label asp-for="Pin" class="form-label"></label><input asp-for="Pin" class="form-control" placeholder="VD: 2000mAh" /></div>
+                            <div class="col-md-6"><label asp-for="KetNoi" class="form-label"></label><input asp-for="KetNoi" class="form-control" placeholder="VD: Bluetooth 5.0" /></div>
+                            <div class="col-md-6"><label asp-for="ChatLieu" class="form-label"></label><input asp-for="ChatLieu" class="form-control" placeholder="VD: Nylon, nhôm CNC" /></div>
+                            <div class="col-md-6"><label asp-for="KichThuoc" class="form-label"></label><input asp-for="KichThuoc" class="form-control" placeholder="VD: 30×20×15cm" /></div>
+                            <div class="col-md-6"><label asp-for="TrongLuong" class="form-label"></label><input asp-for="TrongLuong" class="form-control" placeholder="VD: 450g" /></div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-4" />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thông số kỹ thuật</button>
+                        <a asp-action="SanPham" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+                    </div>
+                    @if (!daLuu)
+                    {
+                        <small class="text-warning d-block mt-2"><i class="fas fa-info-circle"></i> Sau khi lưu, bạn có thể thêm màu sắc ở cột bên trái.</small>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa số lượng + upload ảnh mới -->
+<div class="modal fade" id="editMauModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="fas fa-edit"></i> Sửa phiên bản</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CapNhatSoLuongMau" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="sanPhamId" value="@sanPham?.SanPhamID" />
+                    <input type="hidden" name="mauSacId" id="editMauId" />
+                    <p class="mb-3">Phiên bản: <strong id="editMauTen" class="text-primary"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số lượng mới</label>
+                        <input type="number" name="soLuong" id="editSoLuong" class="form-control" min="0" required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Thay ảnh mới (tùy chọn)</label>
+                        <input type="file" name="hinhAnhMau" class="form-control" accept="image/*"
+                               onchange="previewEditImg(this)" />
+                        <small class="text-muted">Để trống nếu không muốn thay ảnh</small>
+                        <div id="editImgWrap" style="display:none;margin-top:.6rem;">
+                            <img id="editImgPreview" style="max-height:120px;border-radius:8px;border:1px solid #dee2e6;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox xem ảnh lớn -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1rem;"
+     onclick="this.style.display='none'">
+    <img id="lightboxImg" style="max-width:90vw;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);" />
+    <p id="lightboxCaption" style="color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;margin:0;"></p>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        const loaiMacDinh = '@loai';
+        const loaiLabels  = { 'may-anh':'Máy ảnh','ong-kinh':'Ống kính','phu-kien':'Phụ kiện' };
+
+        function chonLoai(loai) {
+            document.querySelectorAll('.field-group').forEach(g => g.classList.remove('show'));
+            document.getElementById('grp-' + loai)?.classList.add('show');
+            document.querySelectorAll('.loai-btn').forEach(b => b.classList.toggle('active', b.dataset.loai === loai));
+            document.getElementById('loaiLabel').textContent = loaiLabels[loai] ?? loai;
+        }
+        document.addEventListener('DOMContentLoaded', () => chonLoai(loaiMacDinh));
+
+        function showEditMau(id, ten, soLuong) {
+            document.getElementById('editMauId').value = id;
+            document.getElementById('editMauTen').textContent = ten;
+            document.getElementById('editSoLuong').value = soLuong;
+            document.getElementById('editImgWrap').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('editMauModal')).show();
+        }
+
+        function previewEditImg(input) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    document.getElementById('editImgPreview').src = e.target.result;
+                    document.getElementById('editImgWrap').style.display = 'block';
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewAddImg(input) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    document.getElementById('addImgPreview').src = e.target.result;
+                    document.getElementById('addImgWrap').style.display = 'block';
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function showLightbox(src, caption) {
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightboxCaption').textContent = caption;
+            lb.style.display = 'flex';
+        }
+    </script>
+}

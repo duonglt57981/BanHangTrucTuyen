@@ -1,0 +1,1406 @@
+﻿@using Assigmemt_Thanh_C4.Models.DataModels
+@using AssigmentC4_TrinhHuuThanh.Models.DataModels
+@model SanPham
+
+@{
+    ViewData["Title"] = Model.TenSanPham;
+    var dsMau = ViewBag.DanhSachMau as List<MauSacSanPham> ?? new List<MauSacSanPham>();
+    var ct = Model.ChiTietSanPham;
+
+    // Thông số kỹ thuật
+    var allSpecs = new List<(string Icon, string Label, string? Value)>();
+    if (ct != null)
+    {
+        allSpecs.Add(("fa-image", "Độ phân giải", ct.DoPhanGiai));
+        allSpecs.Add(("fa-microchip", "Cảm biến", ct.CamBien));
+        allSpecs.Add(("fa-adjust", "ISO", ct.ISO));
+        allSpecs.Add(("fa-camera-retro", "Ống kính mount", ct.OngKinh));
+        allSpecs.Add(("fa-circle-notch", "Khẩu độ", ct.KhauDo));
+        allSpecs.Add(("fa-shield-alt", "Chống rung", ct.ChongRung));
+        allSpecs.Add(("fa-video", "Quay video", ct.Video));
+        allSpecs.Add(("fa-desktop", "Màn hình", ct.ManHinh));
+        allSpecs.Add(("fa-battery-full", "Pin", ct.Pin));
+        allSpecs.Add(("fa-wifi", "Kết nối", ct.KetNoi));
+        allSpecs.Add(("fa-ruler", "Tiêu cự", ct.TieuCu));
+        allSpecs.Add(("fa-plug", "Ngàm lens", ct.NgamLens));
+        allSpecs.Add(("fa-dot-circle", "K/c lấy nét", ct.KhoangCachLayNet));
+        allSpecs.Add(("fa-sun", "Số lá khẩu", ct.SoLaKhau));
+        allSpecs.Add(("fa-bolt", "Công suất", ct.CongSuat));
+        allSpecs.Add(("fa-thermometer", "Nhiệt màu", ct.NhietMau));
+        allSpecs.Add(("fa-star", "CRI", ct.CRI));
+        allSpecs.Add(("fa-weight-hanging", "Tải trọng tối đa", ct.TaiTrongToiDa));
+        allSpecs.Add(("fa-arrows-alt-v", "Chiều cao tối đa", ct.ChieuCaoToiDa));
+        allSpecs.Add(("fa-gem", "Chất liệu", ct.ChatLieu));
+        allSpecs.Add(("fa-ruler-combined", "Kích thước", ct.KichThuoc));
+        allSpecs.Add(("fa-weight", "Trọng lượng", ct.TrongLuong));
+    }
+    var validSpecs = allSpecs.Where(s => !string.IsNullOrEmpty(s.Value)).ToList();
+    var highlights = validSpecs.Take(4).ToList();
+
+    // Ảnh slider: các màu có ảnh, fallback ảnh SP chính
+    var slideList = dsMau
+        .Where(m => m.HinhAnh != null && m.HinhAnh.Length > 0)
+        .Select(m => (
+            Base64: Convert.ToBase64String(m.HinhAnh!),
+            Label: m.TenMau,
+            MauId: m.MauSacID
+        )).ToList();
+
+    // Nếu không màu nào có ảnh, dùng ảnh SP chính
+    if (!slideList.Any() && Model.HinhAnh != null && Model.HinhAnh.Length > 0)
+        slideList.Add((Convert.ToBase64String(Model.HinhAnh), Model.TenSanPham, 0));
+
+    int slideCount = slideList.Count;
+    bool hasSlider = slideCount > 1;
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+    @@import url("https://api.fontshare.com/v2/css?f[]=clash-display@400,600,700&display=swap");
+
+    :root {
+        --bg: #06080f;
+        --card-bg: rgba(14,20,38,.80);
+        --accent: #4f8ef7;
+        --accent2: #764ba2;
+        --text: #f0f4ff;
+        --muted: #7a8aaa;
+        --border: rgba(255,255,255,.07);
+        --spring: cubic-bezier(.34,1.56,.64,1);
+        --slide-width: min(28vw,310px);
+        --slide-aspect: 3/4;
+        --slide-dur: 700ms;
+        --slide-ease: ease;
+        --slide-gap: 1.1;
+    }
+
+    @@media(max-width:768px) {
+        :root {
+            --slide-width: 62vw;
+            --slide-gap: 1.18;
+        }
+    }
+
+    body {
+        background: var(--bg);
+        font-family: 'DM Sans',sans-serif;
+        color: var(--text);
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+        .breadcrumb-item a:hover {
+            color: #7ab0ff;
+        }
+
+    .breadcrumb-item.active, .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--muted);
+    }
+
+    .det-section {
+        padding: 2rem 0 4rem;
+    }
+
+    /* ===== SLIDER WRAPPER ===== */
+    .img-panel {
+        position: relative;
+    }
+
+    .img-slider-wrap {
+        height: 480px;
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        background: rgba(6,8,15,1);
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+
+    /* ===== SLIDER (giống VSCode) ===== */
+    .slider {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        container-type: size;
+    }
+
+    .slider--btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: .65;
+        transition: opacity .25s ease, transform .2s;
+        z-index: 99;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,.3);
+        border: none;
+        border-radius: 50%;
+        padding: 9px;
+        cursor: pointer;
+    }
+
+        .slider--btn:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+    .slider--btn__prev {
+        left: 14px;
+    }
+
+    .slider--btn__next {
+        right: 14px;
+    }
+
+    .slider--btn svg {
+        width: 20px;
+        height: 20px;
+        stroke: white;
+    }
+
+    .slides__wrapper {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+    }
+
+        .slides__wrapper > * {
+            grid-area: 1/-1;
+        }
+
+    .slides, .slides--infos {
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+    }
+
+        .slides > *, .slides--infos > * {
+            grid-area: 1/-1;
+        }
+
+    .slide {
+        --slide-tx: 0px;
+        width: var(--slide-width);
+        height: auto;
+        aspect-ratio: var(--slide-aspect);
+        user-select: none;
+        perspective: 800px;
+        transform: perspective(1000px) translate3d(var(--slide-tx),0,var(--slide-tz,0)) rotateY(var(--slide-rotY)) scale(var(--slide-scale));
+        transition: transform var(--slide-dur) var(--slide-ease);
+        will-change: transform;
+    }
+
+        .slide[data-current] {
+            --slide-scale: 1.2;
+            --slide-tz: 0px;
+            --slide-tx: 0px;
+            --slide-rotY: 0;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .slide[data-next] {
+            --slide-tx: calc(1*var(--slide-width)*var(--slide-gap));
+            --slide-rotY: -40deg;
+            --slide-scale: 1;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .slide[data-previous] {
+            --slide-tx: calc(-1*var(--slide-width)*var(--slide-gap));
+            --slide-rotY: 40deg;
+            --slide-scale: 1;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+    @@media(max-width:768px) {
+        .slide[data-next] {
+            --slide-rotY: -22deg;
+        }
+
+        .slide[data-previous] {
+            --slide-rotY: 22deg;
+        }
+
+        .slide[data-current] {
+            --slide-scale: 1.08;
+        }
+    }
+
+    .slide[data-current] .slide--image {
+        filter: brightness(.88);
+    }
+
+    .slide:not([data-current]) .slide--image {
+        filter: brightness(.4);
+    }
+
+    .slide__inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transform: rotateX(var(--rotX,0)) rotateY(var(--rotY,0));
+    }
+
+    .slide--image__wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+    .slide--image {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        object-fit: cover;
+        transform: translate(-50%,-50%) scale(1.25) translate3d(var(--bgPosX,0%),var(--bgPosY,0%),0);
+        transition: filter var(--slide-dur) var(--slide-ease);
+    }
+
+    .slide__bg {
+        position: absolute;
+        inset: -20%;
+        background-image: var(--bg-img);
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        pointer-events: none;
+        transition: opacity var(--slide-dur) ease, transform var(--slide-dur) ease;
+    }
+
+        .slide__bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.83);
+            backdrop-filter: blur(10px);
+        }
+
+        .slide__bg:not([data-current]) {
+            opacity: 0;
+        }
+
+        .slide__bg[data-previous] {
+            transform: translateX(-8%);
+        }
+
+        .slide__bg[data-next] {
+            transform: translateX(8%);
+        }
+
+    /* Slide info */
+    .slide-info {
+        position: relative;
+        width: var(--slide-width);
+        height: 100%;
+        aspect-ratio: var(--slide-aspect);
+        user-select: none;
+        perspective: 800px;
+        z-index: 100;
+        container-type: size;
+    }
+
+        .slide-info[data-current] .slide-info--text span {
+            opacity: 1;
+            transform: translate3d(0,0,0);
+            transition-delay: 200ms;
+        }
+
+        .slide-info:not([data-current]) .slide-info--text span {
+            opacity: 0;
+            transform: translate3d(0,100%,0);
+            transition-delay: 0ms;
+        }
+
+    .slide-info__inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transform: rotateX(var(--rotX,0)) rotateY(var(--rotY,0));
+    }
+
+    .slide-info--text__wrapper {
+        position: absolute;
+        bottom: 12%;
+        left: -8%;
+        transform: translateZ(38px);
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .slide-info--text {
+        font-family: 'Clash Display','DM Sans',sans-serif;
+        color: #fff;
+        overflow: hidden;
+    }
+
+        .slide-info--text span {
+            display: block;
+            white-space: nowrap;
+            transition: var(--slide-dur) var(--slide-ease);
+            transition-property: opacity,transform;
+        }
+
+        .slide-info--text[data-title] {
+            font-size: clamp(1.1rem,5.5cqw,1.9rem);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .slide-info--text[data-subtitle] {
+            font-size: clamp(.65rem,2.8cqw,.95rem);
+            font-weight: 400;
+            margin-left: .4rem;
+            opacity: .75;
+        }
+
+    @@media(max-width:768px) {
+        .slide-info--text__wrapper {
+            left: 0;
+            bottom: 8%;
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    /* Dots */
+    .slider-dots {
+        display: flex;
+        justify-content: center;
+        gap: .5rem;
+        margin-top: .75rem;
+    }
+
+    .slider-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.22);
+        cursor: pointer;
+        transition: all .3s;
+        border: none;
+    }
+
+        .slider-dot.active {
+            background: var(--accent);
+            transform: scale(1.35);
+        }
+
+    /* Single image */
+    .det-img-single {
+        height: 480px;
+        background: linear-gradient(135deg,rgba(14,24,48,.9),rgba(6,8,15,1));
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+
+        .det-img-single img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform .5s;
+        }
+
+        .det-img-single:hover img {
+            transform: scale(1.04);
+        }
+
+    .det-img-placeholder {
+        font-size: 7rem;
+        color: #1e2d4a;
+    }
+
+    /* Info panel */
+    .det-info {
+        background: var(--card-bg);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 2rem 2rem 1.8rem;
+    }
+
+    .det-cat-badge {
+        display: inline-block;
+        background: rgba(79,142,247,.15);
+        border: 1px solid rgba(79,142,247,.3);
+        color: var(--accent);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: .3rem .85rem;
+        border-radius: 20px;
+        margin-bottom: .9rem;
+    }
+
+    .det-title {
+        font-family: 'Bebas Neue',sans-serif;
+        font-size: clamp(2rem,4vw,3rem);
+        letter-spacing: 1px;
+        color: var(--text);
+        line-height: 1.1;
+        margin-bottom: .5rem;
+    }
+
+    .det-price {
+        font-family: 'Bebas Neue',sans-serif;
+        font-size: 2.8rem;
+        letter-spacing: 1px;
+        color: #f87171;
+        margin: 1rem 0;
+    }
+
+    .det-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1.2rem;
+    }
+
+    .det-meta-item {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+        .det-meta-item i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .det-meta-item small {
+            color: var(--muted);
+            display: block;
+            font-size: .72rem;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+        .det-meta-item strong {
+            color: var(--text);
+            font-size: .9rem;
+        }
+
+    .det-block {
+        background: rgba(255,255,255,.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .det-block-label {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: .75rem;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+        .det-block-label i {
+            color: var(--accent);
+        }
+
+    /* Color buttons */
+    .color-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .color-btn {
+        border: 1.5px solid rgba(255,255,255,.12);
+        border-radius: 8px;
+        padding: .42rem .95rem;
+        cursor: pointer;
+        font-size: .85rem;
+        font-weight: 500;
+        color: var(--muted);
+        background: rgba(255,255,255,.04);
+        font-family: 'DM Sans',sans-serif;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+        .color-btn:hover:not(.sold-out) {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(79,142,247,.1);
+        }
+
+        .color-btn.selected {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .color-btn.sold-out {
+            opacity: .3;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+    .color-stock-tag {
+        font-size: .68rem;
+        padding: .1rem .4rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .color-btn.selected .color-stock-tag {
+        background: rgba(255,255,255,.25);
+        color: #fff;
+    }
+
+    .color-btn:not(.selected) .color-stock-tag.ok {
+        background: rgba(74,222,128,.18);
+        color: #4ade80;
+    }
+
+    .color-btn:not(.selected) .color-stock-tag.low {
+        background: rgba(251,191,36,.18);
+        color: #fbbf24;
+    }
+
+    .color-btn:not(.selected) .color-stock-tag.out {
+        background: rgba(248,113,113,.18);
+        color: #f87171;
+    }
+
+    .color-selected-info {
+        margin-top: .7rem;
+        padding: .5rem .85rem;
+        background: rgba(79,142,247,.1);
+        border: 1px solid rgba(79,142,247,.2);
+        border-radius: 8px;
+        font-size: .82rem;
+        color: #7ab0ff;
+        display: none;
+    }
+
+        .color-selected-info.show {
+            display: block;
+        }
+
+    .spec-highlights {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .5rem;
+        font-size: .82rem;
+        color: #9ab0d0;
+    }
+
+        .spec-highlights span {
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .spec-highlights i {
+            color: var(--accent);
+            font-size: .8rem;
+        }
+
+    .qty-row {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        margin: 1.2rem 0;
+    }
+
+    .qty-label {
+        font-size: .8rem;
+        font-weight: 700;
+        letter-spacing: .5px;
+        color: var(--muted);
+        text-transform: uppercase;
+    }
+
+    .qty-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255,255,255,.15);
+        background: rgba(255,255,255,.05);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .qty-btn:hover {
+            border-color: var(--accent);
+            background: rgba(79,142,247,.15);
+            color: var(--accent);
+        }
+
+    .qty-input {
+        width: 70px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: rgba(255,255,255,.05);
+        border: 1.5px solid rgba(255,255,255,.12);
+        border-radius: 10px;
+        color: var(--text);
+        padding: .35rem;
+        font-family: 'DM Sans',sans-serif;
+    }
+
+        .qty-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+    .qty-max {
+        font-size: .78rem;
+        color: var(--muted);
+    }
+
+    .det-actions {
+        display: grid;
+        gap: .75rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .btn-buy {
+        background: linear-gradient(135deg,var(--accent),var(--accent2));
+        border: none;
+        color: #fff;
+        padding: .9rem 1.5rem;
+        font-family: 'Bebas Neue',sans-serif;
+        letter-spacing: 2px;
+        font-size: 1.15rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all .3s var(--spring);
+    }
+
+        .btn-buy:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(79,142,247,.4);
+        }
+
+        .btn-buy:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+    .btn-cart {
+        background: rgba(79,142,247,.1);
+        border: 1.5px solid rgba(79,142,247,.4);
+        color: var(--accent);
+        padding: .9rem 1.5rem;
+        font-size: 1rem;
+        font-family: 'DM Sans',sans-serif;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all .3s;
+    }
+
+        .btn-cart:hover:not(:disabled) {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .btn-cart:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+    .det-policy {
+        background: rgba(79,142,247,.07);
+        border: 1px solid rgba(79,142,247,.15);
+        border-radius: 10px;
+        padding: .9rem 1.1rem;
+        font-size: .82rem;
+        color: #9ab0d0;
+    }
+
+        .det-policy ul {
+            margin: .4rem 0 0 1rem;
+            padding: 0;
+        }
+
+        .det-policy li {
+            margin-bottom: .25rem;
+        }
+
+    .det-desc-wrap {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 2rem;
+        margin-top: 2.5rem;
+    }
+
+        .det-desc-wrap h3 {
+            font-family: 'Bebas Neue',sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .det-desc-wrap p.lead {
+            color: #9ab0d0;
+            font-size: .95rem;
+            line-height: 1.8;
+        }
+
+    .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+    }
+
+        .spec-table td {
+            padding: .65rem 1rem;
+            font-size: .85rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: #c8d8f0;
+        }
+
+            .spec-table td:first-child {
+                width: 32%;
+                font-weight: 600;
+                color: var(--muted);
+                font-size: .78rem;
+                text-transform: uppercase;
+                letter-spacing: .5px;
+                white-space: nowrap;
+            }
+
+            .spec-table td i {
+                color: var(--accent);
+                margin-right: .4rem;
+            }
+
+        .spec-table tr:hover td {
+            background: rgba(255,255,255,.02);
+        }
+
+    .mau-chip {
+        display: inline-block;
+        background: rgba(74,222,128,.12);
+        border: 1px solid rgba(74,222,128,.25);
+        color: #4ade80;
+        padding: .2rem .65rem;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+        margin: .15rem;
+    }
+
+        .mau-chip.out {
+            background: rgba(100,116,139,.12);
+            border-color: rgba(100,116,139,.25);
+            color: var(--muted);
+        }
+
+    .rel-section {
+        margin-top: 3rem;
+    }
+
+        .rel-section h3 {
+            font-family: 'Bebas Neue',sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+    .rel-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform .3s var(--spring),box-shadow .3s,border-color .3s;
+        cursor: pointer;
+    }
+
+        .rel-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 18px 40px rgba(0,0,0,.45);
+            border-color: rgba(79,142,247,.25);
+        }
+
+    .rel-img {
+        height: 180px;
+        background: linear-gradient(135deg,rgba(14,24,48,.9),rgba(6,8,15,1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .rel-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .4s;
+        }
+
+    .rel-card:hover .rel-img img {
+        transform: scale(1.06);
+    }
+
+    .rel-body {
+        padding: .9rem 1rem 1rem;
+    }
+
+    .rel-name {
+        font-weight: 600;
+        font-size: .88rem;
+        color: var(--text);
+        margin-bottom: .3rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.35;
+    }
+
+    .rel-price {
+        font-family: 'Bebas Neue',sans-serif;
+        font-size: 1.25rem;
+        color: #f87171;
+        margin-bottom: .6rem;
+    }
+
+    .rel-btn {
+        display: block;
+        text-align: center;
+        background: rgba(79,142,247,.1);
+        border: 1px solid rgba(79,142,247,.3);
+        color: var(--accent);
+        padding: .45rem;
+        border-radius: 8px;
+        font-size: .8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .2s;
+    }
+
+        .rel-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+        }
+
+    @@keyframes detFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(12px)
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0)
+        }
+    }
+</style>
+
+<div class="det-section">
+    <div class="container">
+
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index" asp-route-danhMucId="@Model.DanhMucID">@Model.DanhMuc?.TenDanhMuc</a></li>
+                <li class="breadcrumb-item active">@Model.TenSanPham</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+
+            <!-- ===== ẢNH ===== -->
+            <div class="col-lg-6">
+                @if (hasSlider)
+                {
+                    <div class="img-panel">
+                        <div class="img-slider-wrap">
+                            <div class="slider" id="mainSlider">
+                                <button class="slider--btn slider--btn__prev" id="btnPrev">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" /></svg>
+                                </button>
+
+                                <div class="slides__wrapper">
+                                    <div class="slides">
+                                        @for (int i = 0; i < slideList.Count; i++)
+                                        {
+                                            var sl = slideList[i];
+                                            var attr = i == 0 ? "data-current" : i == 1 ? "data-next" : i == slideList.Count - 1 ? "data-previous" : "";
+                                            <div class="slide" @attr>
+                                                <div class="slide__inner">
+                                                    <div class="slide--image__wrapper">
+                                                        <img class="slide--image"
+                                                             src="data:image/jpeg;base64,@sl.Base64"
+                                                             alt="@sl.Label" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="slide__bg"
+                                                 style="--bg-img:url('data:image/jpeg;base64,@sl.Base64')"
+                                                 @attr></div>
+                                        }
+                                    </div>
+
+                                    <div class="slides--infos">
+                                        @for (int i = 0; i < slideList.Count; i++)
+                                        {
+                                            var sl = slideList[i];
+                                            var attr = i == 0 ? "data-current" : i == 1 ? "data-next" : i == slideList.Count - 1 ? "data-previous" : "";
+                                            <div class="slide-info" @attr>
+                                                <div class="slide-info__inner">
+                                                    <div class="slide-info--text__wrapper">
+                                                        <div data-title class="slide-info--text"><span>@sl.Label</span></div>
+                                                        <div data-subtitle class="slide-info--text"><span>@Model.TenSanPham</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <button class="slider--btn slider--btn__next" id="btnNext">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" /></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dots + labels -->
+                        <div class="slider-dots mt-2">
+                            @for (int i = 0; i < slideList.Count; i++)
+                            {
+                                <button class="slider-dot @(i == 0 ? "active" : "")" data-idx="@i" title="@slideList[i].Label"></button>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (slideList.Count == 1)
+                {
+                    <div class="det-img-single">
+                        <img src="data:image/jpeg;base64,@slideList[0].Base64" alt="@Model.TenSanPham" />
+                    </div>
+                }
+                else
+                {
+                    <div class="det-img-single">
+                        <i class="fas fa-camera det-img-placeholder"></i>
+                    </div>
+                }
+            </div>
+
+            <!-- ===== THÔNG TIN ===== -->
+            <div class="col-lg-6">
+                <div class="det-info">
+                    <div class="det-cat-badge">@Model.DanhMuc?.TenDanhMuc</div>
+                    <h1 class="det-title">@Model.TenSanPham</h1>
+                    <div class="det-price">@Model.Gia.ToString("N0") đ</div>
+
+                    <div class="det-meta">
+                        <div class="det-meta-item">
+                            <i class="fas fa-box"></i>
+                            <div>
+                                <small>Tình trạng</small>
+                                <strong id="stockStatus" style="color:@(Model.TonKho > 0 ? "#4ade80" : "#f87171")">
+                                    @(Model.TonKho > 0 ? "Còn hàng" : "Hết hàng")
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="det-meta-item">
+                            <i class="fas fa-barcode"></i>
+                            <div><small>Mã SP</small><strong>SP@Model.SanPhamID.ToString("D6")</strong></div>
+                        </div>
+                        @if (Model.ThuongHieu != null)
+                        {
+                            <div class="det-meta-item">
+                                <i class="fas fa-certificate"></i>
+                                <div><small>Thương hiệu</small><strong>@Model.ThuongHieu.TenThuongHieu</strong></div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- MÀU SẮC -->
+                    @if (dsMau.Any())
+                    {
+                        <div class="det-block">
+                            <div class="det-block-label"><i class="fas fa-palette"></i> Màu sắc / Phiên bản</div>
+                            <div class="color-options">
+                                @foreach (var mau in dsMau)
+                                {
+                                    // Tìm index trong slideList theo MauSacID
+                                    int slideIdx = slideList.FindIndex(s => s.MauId == mau.MauSacID);
+                                    <button type="button"
+                                            class="color-btn @(mau.SoLuong <= 0 ? "sold-out" : "")"
+                                            data-ten="@mau.TenMau"
+                                            data-sl="@mau.SoLuong"
+                                            data-slide-idx="@slideIdx"
+                                            onclick="@(mau.SoLuong > 0 ? $"chonMau(this,'{mau.TenMau}',{mau.SoLuong},{slideIdx})" : "")">
+                                        @mau.TenMau
+                                        @if (mau.SoLuong > 5)
+                                        {
+                                            <span class="color-stock-tag ok">@mau.SoLuong</span>
+                                        }
+                                        else if (mau.SoLuong > 0)
+                                        {
+
+                                            <span class="color-stock-tag low">Còn @mau.SoLuong</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="color-stock-tag out">Hết</span>
+                                        }
+                                    </button>
+                                }
+                            </div>
+                            <div class="color-selected-info" id="colorInfo">
+                                <i class="fas fa-check-circle" style="color:#4ade80;"></i>
+                                Đã chọn: <strong id="colorName"></strong> &mdash;
+                                Còn <strong id="colorStock"></strong> sản phẩm
+                            </div>
+                        </div>
+                    }
+
+                    <!-- THÔNG SỐ NỔI BẬT -->
+                    @if (highlights.Any())
+                    {
+                        <div class="det-block">
+                            <div class="det-block-label"><i class="fas fa-microchip"></i> Thông số nổi bật</div>
+                            <div class="spec-highlights">
+                                @foreach (var (icon, label, value) in highlights)
+                                {
+                                    <span><i class="fas @icon"></i><strong style="color:var(--muted);margin-right:2px;">@label:</strong>@value</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- SỐ LƯỢNG -->
+                    <div class="qty-row">
+                        <span class="qty-label">Số lượng</span>
+                        <button class="qty-btn" onclick="decreaseQty()"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="qty-input" id="quantity" value="1" min="1" max="1" />
+                        <button class="qty-btn" onclick="increaseQty()"><i class="fas fa-plus"></i></button>
+                        <span class="qty-max">Tối đa: <span id="maxQtyDisplay">—</span></span>
+                    </div>
+
+                    <div class="det-actions">
+                        <button class="btn-buy" id="btnBuyNow" onclick="buyNow(@Model.SanPhamID)" @(Model.TonKho <= 0 ? "disabled" : "")>
+                            <i class="fas fa-bolt"></i> &nbsp;Mua ngay
+                        </button>
+                        <button class="btn-cart" id="btnAddToCart" onclick="addToCart(@Model.SanPhamID)" @(Model.TonKho <= 0 ? "disabled" : "")>
+                            <i class="fas fa-cart-plus"></i> &nbsp;Thêm vào giỏ hàng
+                        </button>
+                    </div>
+
+                    <div class="det-policy">
+                        <i class="fas fa-info-circle" style="color:var(--accent);"></i>
+                        <strong style="color:var(--text);">Chính sách:</strong>
+                        <ul>
+                            <li>Bảo hành chính hãng 12 tháng</li>
+                            <li>Đổi trả trong 7 ngày</li>
+                            <li>Miễn phí vận chuyển cho đơn hàng trên 5 triệu</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÔ TẢ & THÔNG SỐ -->
+        <div class="det-desc-wrap">
+            <h3><i class="fas fa-align-left" style="color:var(--accent);font-size:1.2rem;margin-right:.4rem;"></i>Mô tả sản phẩm</h3>
+            <p class="lead">@Model.MoTa</p>
+
+            @if (ct != null)
+            {
+                <h3 style="margin-top:2rem;"><i class="fas fa-list" style="color:var(--accent);font-size:1.2rem;margin-right:.4rem;"></i>Thông số kỹ thuật</h3>
+                <table class="spec-table">
+                    <tbody>
+                        @if (Model.ThuongHieu != null)
+                        {
+                            <tr><td><i class="fas fa-tag"></i>Thương hiệu</td><td>@Model.ThuongHieu.TenThuongHieu (@Model.ThuongHieu.QuocGia)</td></tr>
+                        }
+                        <tr><td><i class="fas fa-th-large"></i>Danh mục</td><td>@Model.DanhMuc?.TenDanhMuc</td></tr>
+                        @if (dsMau.Any())
+                        {
+                            <tr>
+                                <td><i class="fas fa-palette"></i>Màu / Phiên bản</td>
+                                <td>@foreach (var m in dsMau) {
+                                <span class="mau-chip @(m.SoLuong <= 0 ? "out" : "")">@m.TenMau @(m.SoLuong > 0 ? $"({m.SoLuong})" : "(Hết)")</span>
+                            }
+    </td>
+                        </tr>
+                    }
+                    @foreach (var (icon, label, value) in validSpecs)
+                    {
+                        <tr><td><i class="fas @icon"></i>@label</td><td>@value</td></tr>
+                    }
+                    <tr><td><i class="fas fa-calendar-alt"></i>Ngày thêm</td><td>@Model.NgayThem.ToString("dd/MM/yyyy")</td></tr>
+                </tbody>
+            </table>
+                        }
+        </div>
+
+        <!-- SẢN PHẨM LIÊN QUAN -->
+        @if (ViewBag.SanPhamLienQuan != null && ((List<SanPham>)ViewBag.SanPhamLienQuan).Any())
+        {
+            <div class="rel-section">
+                <h3><i class="fas fa-th" style="color:var(--accent);font-size:1.2rem;margin-right:.4rem;"></i>Sản phẩm liên quan</h3>
+                <div class="row g-3">
+                    @foreach (var item in (List<SanPham>)ViewBag.SanPhamLienQuan)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="rel-card" onclick="location.href='@Url.Action("Details", new { id = item.SanPhamID })'">
+                                <div class="rel-img">
+                                    @if (item.HinhAnh != null && item.HinhAnh.Length > 0)
+                                    {
+                                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.HinhAnh)" alt="@item.TenSanPham" />
+                                    }
+                                    else
+                                    {
+
+                                        <i class="fas fa-camera" style="font-size:2.5rem;color:#1e2d4a;"></i>
+                                    }
+                                </div>
+                                <div class="rel-body">
+                                    <div class="rel-name">@item.TenSanPham</div>
+                                    <div class="rel-price">@item.Gia.ToString("N0") đ</div>
+                                    <a asp-action="Details" asp-route-id="@item.SanPhamID" class="rel-btn" onclick="event.stopPropagation()">Xem chi tiết</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ===== DỮ LIỆU SLIDE (index → tên màu) =====
+        const slideMeta = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    slideList.Select((s, i) => new { idx = i, label = s.Label, mauId = s.MauId })
+            ));
+    const totalSlides = @slideCount;
+    const hasSlider   = @(hasSlider ? "true" : "false");
+    let currentIdx    = 0;
+
+        // ===== PARALLAX TILT =====
+        const isMobile = window.matchMedia("(pointer:coarse)").matches;
+
+        function initTilt(triggerEl, targets) {
+            if (isMobile || !triggerEl) return;
+            const rot = { cur: {x:0,y:0}, tgt: {x:0,y:0} };
+            const bg  = { cur: {x:0,y:0}, tgt: {x:0,y:0} };
+            let la = 0.06;
+            const lerp = (a,b,t) => a+(b-a)*t;
+
+            (function tick() {
+                rot.cur.x = lerp(rot.cur.x, rot.tgt.x, la);
+                rot.cur.y = lerp(rot.cur.y, rot.tgt.y, la);
+                bg.cur.x  = lerp(bg.cur.x,  bg.tgt.x,  la);
+                bg.cur.y  = lerp(bg.cur.y,  bg.tgt.y,  la);
+                for (const el of targets) {
+                    el.style.setProperty('--rotX',   rot.cur.y.toFixed(2)+'deg');
+                    el.style.setProperty('--rotY',   rot.cur.x.toFixed(2)+'deg');
+                    el.style.setProperty('--bgPosX', bg.cur.x.toFixed(2)+'%');
+                    el.style.setProperty('--bgPosY', bg.cur.y.toFixed(2)+'%');
+                }
+                requestAnimationFrame(tick);
+            })();
+
+            triggerEl.addEventListener('mousemove', ({offsetX, offsetY}) => {
+                la = 0.1;
+                for (const el of targets) {
+                    const ox = (offsetX - el.clientWidth*.5)/(Math.PI*3);
+                    const oy = -(offsetY - el.clientHeight*.5)/(Math.PI*4);
+                    rot.tgt.x = ox; rot.tgt.y = oy;
+                    bg.tgt.x  = -ox*.3; bg.tgt.y = oy*.3;
+                }
+            });
+            triggerEl.addEventListener('mouseleave', () => {
+                la = 0.06;
+                rot.tgt.x = rot.tgt.y = bg.tgt.x = bg.tgt.y = 0;
+            });
+        }
+
+        // ===== SLIDER NAVIGATION =====
+        function goTo(idx) {
+            if (!hasSlider || totalSlides < 2) return;
+            const slides = [...document.querySelectorAll('.slide')];
+            const infos  = [...document.querySelectorAll('.slide-info')];
+            const bgs    = [...document.querySelectorAll('.slide__bg')];
+            const dots   = [...document.querySelectorAll('.slider-dot')];
+            const prev   = (idx - 1 + totalSlides) % totalSlides;
+            const next   = (idx + 1) % totalSlides;
+
+            const clear = el => { el.removeAttribute('data-current'); el.removeAttribute('data-previous'); el.removeAttribute('data-next'); };
+            [...slides,...infos,...bgs].forEach(clear);
+
+            slides[idx].setAttribute('data-current','');   infos[idx].setAttribute('data-current','');   bgs[idx].setAttribute('data-current','');
+            slides[prev].setAttribute('data-previous',''); infos[prev].setAttribute('data-previous',''); bgs[prev].setAttribute('data-previous','');
+            slides[next].setAttribute('data-next','');     infos[next].setAttribute('data-next','');     bgs[next].setAttribute('data-next','');
+
+            dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+            currentIdx = idx;
+
+            // Sync nút màu với slide hiện tại
+            const meta = slideMeta.find(m => m.idx === idx);
+            if (meta) syncColorBtnByLabel(meta.label);
+        }
+
+        function syncColorBtnByLabel(label) {
+            const btn = [...document.querySelectorAll('.color-btn')].find(b => b.dataset.ten === label);
+            if (btn && !btn.classList.contains('sold-out')) {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                mauDaChon = label;
+                const sl = parseInt(btn.dataset.sl);
+                updateStockUI(sl);
+                document.getElementById('colorName').textContent  = label;
+                document.getElementById('colorStock').textContent = sl;
+                document.getElementById('colorInfo').classList.add('show');
+            }
+        }
+
+        // ===== COLOR SELECTION =====
+        const coMau = @(dsMau.Any() ? "true" : "false");
+        let mauDaChon = null;
+
+        function updateStockUI(sl) {
+            const s = document.getElementById('stockStatus');
+            s.style.color = sl>0 ? '#4ade80':'#f87171';
+            s.textContent = sl>0 ? `Còn ${sl} sản phẩm`:'Hết hàng';
+            const inp = document.getElementById('quantity');
+            inp.max = sl; inp.value = sl>0?1:0;
+            document.getElementById('maxQtyDisplay').textContent = sl>0?sl:'Hết hàng';
+            document.getElementById('btnBuyNow').disabled    = sl<=0;
+            document.getElementById('btnAddToCart').disabled = sl<=0;
+        }
+
+        function chonMau(el, ten, soLuong, slideIdx) {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            mauDaChon = ten;
+            document.getElementById('colorName').textContent  = ten;
+            document.getElementById('colorStock').textContent = soLuong;
+            document.getElementById('colorInfo').classList.add('show');
+            updateStockUI(soLuong);
+
+            // Chuyển slider đến ảnh của màu này (nếu có)
+            if (slideIdx >= 0 && slideIdx !== currentIdx) goTo(slideIdx);
+        }
+
+        function increaseQty() { const i=document.getElementById('quantity'); if(+i.value<+i.max) i.value=+i.value+1; }
+        function decreaseQty() { const i=document.getElementById('quantity'); if(+i.value>1) i.value=+i.value-1; }
+
+        function addToCart(id) {
+            if (coMau && !mauDaChon) {
+                showToast('Vui lòng chọn màu sắc / phiên bản!','err');
+                document.querySelector('.det-block')?.scrollIntoView({behavior:'smooth'});
+                return;
+            }
+            const qty = parseInt(document.getElementById('quantity').value);
+            fetch('/Cart/AddToCart',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                body:`sanPhamId=${id}&soLuong=${qty}&bienThe=${encodeURIComponent(mauDaChon||'')}`})
+            .then(r=>r.json()).then(d=>{showToast(d.message,d.success?'ok':'err');if(d.success)updateCartCount(d.cartCount);});
+        }
+
+        function buyNow(id) {
+            if (coMau && !mauDaChon) { showToast('Vui lòng chọn màu sắc / phiên bản!','err'); document.querySelector('.det-block')?.scrollIntoView({behavior:'smooth'}); return; }
+            addToCart(id);
+            setTimeout(()=>{ window.location.href='/Cart'; }, 800);
+        }
+
+        function showToast(msg,type) {
+            const t=document.createElement('div');
+            t.style.cssText=`position:fixed;top:22px;right:22px;z-index:9999;min-width:280px;padding:12px 18px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#fff;backdrop-filter:blur(10px);background:${type==='ok'?'rgba(30,90,200,.92)':'rgba(200,40,40,.92)'};box-shadow:0 8px 24px rgba(0,0,0,.35);animation:detFadeUp .3s ease;`;
+            t.innerHTML=`<i class="fas fa-${type==='ok'?'check-circle':'exclamation-circle'}"></i> ${msg}`;
+            document.body.appendChild(t);
+            setTimeout(()=>t.remove(),2800);
+        }
+
+        function updateCartCount(n) { const b=document.querySelector('.cart-badge'); if(b) b.textContent=n; }
+
+        // ===== INIT =====
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('/Cart/GetCartCount').then(r=>r.json()).then(d=>updateCartCount(d.count));
+
+            if (hasSlider) {
+                // Init tilt cho từng slide
+                document.querySelectorAll('.slide').forEach((slide, i) => {
+                    const inner     = slide.querySelector('.slide__inner');
+                    const infoInner = document.querySelectorAll('.slide-info__inner')[i];
+                    initTilt(slide, infoInner ? [inner, infoInner] : [inner]);
+                });
+
+                // Nút prev/next
+                document.getElementById('btnPrev')?.addEventListener('click', () => goTo((currentIdx-1+totalSlides)%totalSlides));
+                document.getElementById('btnNext')?.addEventListener('click', () => goTo((currentIdx+1)%totalSlides));
+
+                // Dots
+                document.querySelectorAll('.slider-dot').forEach((d,i) => d.addEventListener('click', ()=>goTo(i)));
+
+                // Swipe mobile
+                let tx=0;
+                document.getElementById('mainSlider').addEventListener('touchstart', e=>{tx=e.changedTouches[0].screenX;},{passive:true});
+                document.getElementById('mainSlider').addEventListener('touchend',   e=>{
+                    const dx=e.changedTouches[0].screenX-tx;
+                    if(dx<-50) goTo((currentIdx+1)%totalSlides);
+                    if(dx>50)  goTo((currentIdx-1+totalSlides)%totalSlides);
+                },{passive:true});
+            }
+
+            // Tự chọn màu đầu tiên còn hàng
+            const first = document.querySelector('.color-btn:not(.sold-out)');
+            if (first) first.click();
+        });
+    </script>
+}

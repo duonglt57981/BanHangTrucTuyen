@@ -1,0 +1,43 @@
+﻿@model Assigmemt_Thanh_C4.Models.DataModels.DanhMuc
+
+@{
+    ViewData["Title"] = "Thêm danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-plus"></i> Thêm danh mục mới
+    </div>
+    <div class="card-body">
+        <form asp-action="ThemDanhMuc" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div class="mb-3">
+                <label asp-for="TenDanhMuc" class="form-label"></label>
+                <input asp-for="TenDanhMuc" class="form-control" placeholder="Nhập tên danh mục" />
+                <span asp-validation-for="TenDanhMuc" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MoTa" class="form-label"></label>
+                <textarea asp-for="MoTa" class="form-control" rows="3" 
+                          placeholder="Nhập mô tả danh mục..."></textarea>
+                <span asp-validation-for="MoTa" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu danh mục
+                </button>
+                <a asp-action="DanhMuc" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

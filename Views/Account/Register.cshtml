@@ -1,0 +1,221 @@
+﻿@model Assigmemt_Thanh_C4.Models.DataModels.NguoiDung
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<style>
+    .register-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .register-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .register-left {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .register-left h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .register-left .benefits {
+        list-style: none;
+        padding: 0;
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    .register-left .benefits li {
+        padding: 10px 0;
+        font-size: 1rem;
+    }
+
+    .register-left .benefits i {
+        margin-right: 10px;
+        width: 20px;
+    }
+
+    .register-right {
+        padding: 60px 50px;
+    }
+
+    .register-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .register-subtitle {
+        color: #7f8c8d;
+        margin-bottom: 30px;
+    }
+
+    .form-control {
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+</style>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="row g-0">
+            <!-- Left Side -->
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="register-left">
+                    <i class="fas fa-user-plus fa-4x mb-4"></i>
+                    <h2>Tham gia ngay!</h2>
+                    <p>Trở thành thành viên của CameraShop và nhận nhiều ưu đãi</p>
+                    <ul class="benefits">
+                        <li><i class="fas fa-gift"></i> Ưu đãi đặc biệt cho thành viên</li>
+                        <li><i class="fas fa-shipping-fast"></i> Miễn phí vận chuyển</li>
+                        <li><i class="fas fa-headset"></i> Hỗ trợ khách hàng 24/7</li>
+                        <li><i class="fas fa-bell"></i> Thông báo sản phẩm mới</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right Side - Register Form -->
+            <div class="col-lg-7">
+                <div class="register-right">
+                    <h1 class="register-title">Đăng ký tài khoản</h1>
+                    <p class="register-subtitle">Tạo tài khoản của bạn</p>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TenDangNhap" class="form-label"></label>
+                                <input asp-for="TenDangNhap" class="form-control" 
+                                       placeholder="Tên đăng nhập" required />
+                                <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="HoTen" class="form-label"></label>
+                                <input asp-for="HoTen" class="form-control" 
+                                       placeholder="Họ và tên" />
+                                <span asp-validation-for="HoTen" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" type="email"
+                                       placeholder="email@example.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SoDienThoai" class="form-label"></label>
+                                <input asp-for="SoDienThoai" class="form-control" 
+                                       placeholder="0123456789" />
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DiaChi" class="form-label"></label>
+                            <textarea asp-for="DiaChi" class="form-control" rows="2"
+                                      placeholder="Địa chỉ của bạn"></textarea>
+                            <span asp-validation-for="DiaChi" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MatKhau" class="form-label"></label>
+                                <input asp-for="MatKhau" class="form-control" type="password"
+                                       placeholder="Mật khẩu" required />
+                                <span asp-validation-for="MatKhau" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Xác nhận mật khẩu</label>
+                                <input name="xacNhanMatKhau" class="form-control" type="password"
+                                       placeholder="Nhập lại mật khẩu" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Tôi đồng ý với <a href="#" style="color: #667eea;">Điều khoản sử dụng</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-register w-100">
+                            <i class="fas fa-user-plus"></i> Đăng ký
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0">
+                            Đã có tài khoản? 
+                            <a asp-action="Login" class="fw-bold" style="color: #667eea;">Đăng nhập ngay</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

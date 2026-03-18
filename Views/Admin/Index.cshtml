@@ -1,0 +1,162 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Thống kê -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="stat-value">@ViewBag.TongSanPham</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-value">@ViewBag.TongDonHang</div>
+            <div class="stat-label">Tổng đơn hàng</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">@ViewBag.TongKhachHang</div>
+            <div class="stat-label">Khách hàng</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">@(((decimal)ViewBag.DoanhThu).ToString("N0"))</div>
+            <div class="stat-label">Doanh thu (VNĐ)</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Đơn hàng mới -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-shopping-cart"></i> Đơn hàng mới nhất
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.DonHangMoi != null && ViewBag.DonHangMoi.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã ĐH</th>
+                                    <th>Khách hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var dh in ViewBag.DonHangMoi)
+                                {
+                                    <tr>
+                                        <td><strong>#DH@dh.DonHangID</strong></td>
+                                        <td>@dh.NguoiDung?.HoTen</td>
+                                        <td>@dh.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (dh.TrangThai == "Chờ xử lý")
+                                            {
+                                                <span class="badge bg-warning">@dh.TrangThai</span>
+                                            }
+                                            else if (dh.TrangThai == "Đang giao")
+                                            {
+                                                <span class="badge bg-info">@dh.TrangThai</span>
+                                            }
+                                            else if (dh.TrangThai == "Hoàn thành")
+                                            {
+                                                <span class="badge bg-success">@dh.TrangThai</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">@dh.TrangThai</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="ChiTietDonHang" asp-route-id="@dh.DonHangID" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-inbox fa-2x mb-3"></i>
+                        <p>Chưa có đơn hàng nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sản phẩm sắp hết hàng -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle"></i> Sản phẩm sắp hết
+            </div>
+            <div class="card-body">
+                @if (ViewBag.SanPhamSapHet != null && ViewBag.SanPhamSapHet.Count > 0)
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var sp in ViewBag.SanPhamSapHet)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <strong>@sp.TenSanPham</strong>
+                                    <br />
+                                    <small class="text-muted">@sp.Gia.ToString("N0") đ</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">@sp.TonKho</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-check-circle fa-2x mb-3"></i>
+                        <p>Tất cả sản phẩm đều còn đủ hàng</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Biểu đồ (placeholder) -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Doanh thu theo tháng
+            </div>
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                <p class="text-muted">Biểu đồ thống kê doanh thu sẽ được hiển thị ở đây</p>
+            </div>
+        </div>
+    </div>
+</div>

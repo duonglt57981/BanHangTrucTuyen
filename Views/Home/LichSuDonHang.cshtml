@@ -1,0 +1,403 @@
+﻿@using Assigmemt_Thanh_C4.Models.DataModels
+@model IEnumerable<DonHang>
+
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --bg: #06080f;
+        --card-bg: rgba(14,20,38,0.80);
+        --accent: #4f8ef7;
+        --text: #f0f4ff;
+        --muted: #7a8aaa;
+        --border: rgba(255,255,255,0.07);
+        --green: #4ade80;
+        --yellow: #fbbf24;
+        --red: #f87171;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .lsdh-header {
+        padding: 2.5rem 0 1.5rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2rem;
+    }
+
+    .lsdh-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(2rem, 5vw, 3rem);
+        letter-spacing: 2px;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+
+    .lsdh-count {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .lsdh-empty {
+        text-align: center;
+        padding: 5rem 0;
+        color: var(--muted);
+    }
+
+        .lsdh-empty i {
+            font-size: 4rem;
+            margin-bottom: 1.2rem;
+            display: block;
+            color: #1e2d4a;
+        }
+
+        .lsdh-empty h4 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .lsdh-empty a {
+            display: inline-block;
+            margin-top: 1.2rem;
+            background: var(--accent);
+            color: #fff;
+            padding: 0.7rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .lsdh-empty a:hover {
+                background: #2e6fd8;
+                transform: translateY(-2px);
+            }
+
+    /* ===== ORDER CARD ===== */
+    .order-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        transition: border-color 0.25s;
+    }
+
+        .order-card:hover {
+            border-color: rgba(79,142,247,0.2);
+        }
+
+    /* Card header */
+    .order-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 1rem 1.4rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,0.02);
+    }
+
+    .order-id {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.15rem;
+        letter-spacing: 1px;
+        color: var(--text);
+    }
+
+    .order-date {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-left: 0.5rem;
+    }
+
+    /* Status badge */
+    .status-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 0.3rem 0.85rem;
+        border-radius: 20px;
+    }
+
+        .status-badge.cho {
+            background: rgba(251,191,36,0.15);
+            border: 1px solid rgba(251,191,36,0.3);
+            color: var(--yellow);
+        }
+
+        .status-badge.dang {
+            background: rgba(79,142,247,0.15);
+            border: 1px solid rgba(79,142,247,0.3);
+            color: var(--accent);
+        }
+
+        .status-badge.giao {
+            background: rgba(74,222,128,0.15);
+            border: 1px solid rgba(74,222,128,0.3);
+            color: var(--green);
+        }
+
+        .status-badge.huy {
+            background: rgba(248,113,113,0.15);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: var(--red);
+        }
+
+    /* Card body */
+    .order-body {
+        padding: 1.2rem 1.4rem;
+    }
+
+    /* Items table */
+    .order-items {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.2rem;
+    }
+
+        .order-items thead tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .order-items th {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 0 0 0.6rem;
+        }
+
+            .order-items th:last-child {
+                text-align: right;
+            }
+
+        .order-items td {
+            padding: 0.7rem 0;
+            font-size: 0.88rem;
+            color: #c8d8f0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+
+            .order-items td:last-child {
+                text-align: right;
+                font-weight: 600;
+                color: var(--text);
+            }
+
+        .order-items tr:last-child td {
+            border-bottom: none;
+        }
+
+    .item-name {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .item-qty {
+        color: var(--muted);
+        font-size: 0.82rem;
+    }
+
+    /* Footer row */
+    .order-foot {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 0.8rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .order-address p {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin: 0 0 0.2rem;
+    }
+
+    .order-address span {
+        color: #c8d8f0;
+    }
+
+    .order-total {
+        text-align: right;
+    }
+
+    .order-total-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+    }
+
+    .order-total-amount {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+        color: var(--red);
+    }
+
+    /* Thanh toán badge */
+    .paid-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        margin-left: 0.5rem;
+    }
+
+        .paid-badge.yes {
+            background: rgba(74,222,128,0.15);
+            color: var(--green);
+            border: 1px solid rgba(74,222,128,0.25);
+        }
+
+        .paid-badge.no {
+            background: rgba(248,113,113,0.12);
+            color: var(--red);
+            border: 1px solid rgba(248,113,113,0.2);
+        }
+</style>
+
+<div class="container">
+    <!-- Header -->
+    <div class="lsdh-header">
+        <h2 class="lsdh-title"><i class="fas fa-history" style="font-size:1.8rem;margin-right:0.4rem;color:var(--accent);-webkit-text-fill-color:var(--accent);"></i>Lịch sử đơn hàng</h2>
+        <p class="lsdh-count">@Model.Count() đơn hàng</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="lsdh-empty">
+            <i class="fas fa-box-open"></i>
+            <h4>Bạn chưa có đơn hàng nào</h4>
+            <p>Hãy khám phá sản phẩm và đặt hàng ngay!</p>
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var dh in Model)
+        {
+            @* Xác định class status *@
+            var statusClass = dh.TrangThai switch
+            {
+                "Đã giao" => "giao",
+                "Đang giao" => "dang",
+                "Chờ xác nhận" => "cho",
+                "Đã hủy" => "huy",
+                _ => "cho"
+            };
+
+            <div class="order-card">
+
+                <!-- Header -->
+                <div class="order-head">
+                    <div>
+                        <span class="order-id"># @dh.DonHangID</span>
+                        <span class="order-date">
+                            <i class="fas fa-calendar-alt"></i>
+                            @dh.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <span class="status-badge @statusClass">@dh.TrangThai</span>
+                        <span class="paid-badge @(dh.DaThanhToan ? "yes" : "no")">
+                            @(dh.DaThanhToan ? "Đã thanh toán" : "Chưa thanh toán")
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="order-body">
+
+                    @* Danh sách sản phẩm *@
+                    @if (dh.ChiTietDonHangs != null && dh.ChiTietDonHangs.Any())
+                    {
+                        <table class="order-items">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ct in dh.ChiTietDonHangs)
+                                {
+                                    <tr>
+                                        <td class="item-name">@ct.SanPham?.TenSanPham</td>
+                                        <td class="item-qty">× @ct.SoLuong</td>
+                                        <td>@ct.Gia.ToString("N0") đ</td>
+                                        <td>@((ct.Gia * ct.SoLuong).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p style="color:var(--muted);font-size:0.85rem;">Không có thông tin sản phẩm.</p>
+                    }
+
+                    <!-- Footer -->
+                    <div class="order-foot">
+                        <div class="order-address">
+                            @if (!string.IsNullOrEmpty(dh.DiaChiGiaoHang))
+                            {
+                                <p>
+                                    <i class="fas fa-map-marker-alt" style="color:var(--accent);margin-right:4px;"></i>
+                                    <span>@dh.DiaChiGiaoHang</span>
+                                </p>
+                            }
+                            @if (!string.IsNullOrEmpty(dh.SoDienThoai))
+                            {
+                                <p>
+                                    <i class="fas fa-phone" style="color:var(--accent);margin-right:4px;"></i>
+                                    <span>@dh.SoDienThoai</span>
+                                </p>
+                            }
+                            @if (!string.IsNullOrEmpty(dh.GhiChu))
+                            {
+                                <p>
+                                    <i class="fas fa-sticky-note" style="color:var(--muted);margin-right:4px;"></i>
+                                    <span style="color:var(--muted);">@dh.GhiChu</span>
+                                </p>
+                            }
+                        </div>
+                        <div class="order-total">
+                            <div class="order-total-label">Tổng cộng</div>
+                            <div class="order-total-amount">@dh.TongTien.ToString("N0") đ</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        }
+    }
+</div>

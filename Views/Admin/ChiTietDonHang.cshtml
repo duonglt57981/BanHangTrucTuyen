@@ -1,0 +1,237 @@
+﻿@using Assigmemt_Thanh_C4.Models.DataModels
+@model DonHang
+
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.DonHangID}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+        <i class="fas fa-receipt"></i>
+        Chi tiết đơn hàng <strong>#DH@Model.DonHangID</strong>
+    </h5>
+    <a asp-action="DonHang" class="btn btn-sm btn-secondary">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-3">
+
+    <!-- Cột trái -->
+    <div class="col-lg-4">
+
+        <!-- Thông tin đơn hàng -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i> Thông tin đơn hàng
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted fw-bold" style="width:45%">Mã đơn</td>
+                        <td><strong>#DH@Model.DonHangID</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">Ngày đặt</td>
+                        <td>@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">Tổng tiền</td>
+                        <td><strong class="text-danger">@Model.TongTien.ToString("N0") đ</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">Ghi chú</td>
+                        <td>@(string.IsNullOrEmpty(Model.GhiChu) ? "—" : Model.GhiChu)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Thông tin khách hàng -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-user"></i> Khách hàng
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted fw-bold" style="width:45%">Họ tên</td>
+                        <td>@Model.NguoiDung?.HoTen</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">Email</td>
+                        <td>@Model.NguoiDung?.Email</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">SĐT giao</td>
+                        <td>@Model.SoDienThoai</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">Địa chỉ</td>
+                        <td>@Model.DiaChiGiaoHang</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cập nhật trạng thái & thanh toán -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-sliders-h"></i> Cập nhật
+            </div>
+            <div class="card-body">
+
+                <!-- Trạng thái đơn hàng -->
+                <p class="fw-bold mb-1 small text-muted text-uppercase">Trạng thái đơn hàng</p>
+                @{
+                    var (bc, ic) = Model.TrangThai switch
+                    {
+                        "Chờ xác nhận" => ("bg-warning text-dark", "fa-clock"),
+                        "Đang giao" => ("bg-info", "fa-truck"),
+                        "Đã giao" => ("bg-success", "fa-check"),
+                        "Đã hủy" => ("bg-danger", "fa-times"),
+                        _ => ("bg-secondary", "fa-question")
+                    };
+                }
+                <span class="badge @bc mb-2">
+                    <i class="fas @ic me-1"></i>@Model.TrangThai
+                </span>
+
+                <form asp-action="CapNhatTrangThai" method="post" class="mb-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.DonHangID" />
+                    <div class="input-group input-group-sm">
+                        <select name="trangThai" class="form-select">
+                            @foreach (var tt in new[] { "Chờ xác nhận", "Đang giao", "Đã giao", "Đã hủy" })
+                            {
+                                <option value="@tt" selected="@(Model.TrangThai == tt)">@tt</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+
+                <hr />
+
+                <!-- Thanh toán toggle - chỉ truyền id, controller tự toggle -->
+                <p class="fw-bold mb-2 small text-muted text-uppercase">Trạng thái thanh toán</p>
+
+                <div class="mb-2">
+                    <span class="badge @(Model.DaThanhToan ? "bg-success" : "bg-danger") fs-6">
+                        <i class="fas @(Model.DaThanhToan ? "fa-check-circle" : "fa-times-circle") me-1"></i>
+                        @(Model.DaThanhToan ? "Đã thanh toán" : "Chưa thanh toán")
+                    </span>
+                </div>
+
+                <form asp-action="CapNhatThanhToan" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.DonHangID" />
+                    <input type="hidden" name="returnUrl" value="detail" />
+                    @* KHÔNG truyền bool - controller tự toggle !DaThanhToan trong DB *@
+                    <button type="submit"
+                            class="btn btn-sm @(Model.DaThanhToan ? "btn-outline-danger" : "btn-outline-success") w-100">
+                        <i class="fas @(Model.DaThanhToan ? "fa-times-circle" : "fa-check-circle") me-1"></i>
+                        @(Model.DaThanhToan ? "Đánh dấu Chưa thanh toán" : "Đánh dấu Đã thanh toán")
+                    </button>
+                </form>
+
+                @if (!string.IsNullOrEmpty(Model.PhuongThucThanhToan))
+                {
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-credit-card me-1"></i>
+                        Phương thức: <strong>@Model.PhuongThucThanhToan</strong>
+                    </p>
+                }
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Cột phải: sản phẩm -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-box"></i> Sản phẩm trong đơn
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Đơn giá</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ChiTietDonHangs != null && Model.ChiTietDonHangs.Any())
+                        {
+                            @foreach (var ct in Model.ChiTietDonHangs)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (ct.SanPham?.HinhAnh != null && ct.SanPham.HinhAnh.Length > 0)
+                                            {
+                                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(ct.SanPham.HinhAnh)"
+                                                     style="width:45px;height:45px;object-fit:cover;border-radius:8px;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:45px;height:45px;background:#f0f2f5;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                                    <i class="fas fa-camera text-muted"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <strong>@ct.SanPham?.TenSanPham</strong>
+                                                <br />
+                                                <small class="text-muted">SP@ct.SanPhamID.ToString("D6")</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">@ct.Gia.ToString("N0") đ</td>
+                                    <td class="text-center">× @ct.SoLuong</td>
+                                    <td class="text-end fw-bold">@((ct.Gia * ct.SoLuong).ToString("N0")) đ</td>
+                                </tr>
+                            }
+                            <tr class="table-light">
+                                <td colspan="3" class="text-end fw-bold">Tổng cộng:</td>
+                                <td class="text-end fw-bold text-danger fs-5">
+                                    @Model.TongTien.ToString("N0") đ
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Không có sản phẩm nào
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

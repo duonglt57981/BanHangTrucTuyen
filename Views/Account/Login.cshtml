@@ -1,0 +1,263 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .login-left {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .login-left h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .login-left p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .login-left .feature-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    .login-left .feature-list li {
+        padding: 10px 0;
+        font-size: 1rem;
+    }
+
+    .login-left .feature-list i {
+        margin-right: 10px;
+        width: 20px;
+    }
+
+    .login-right {
+        padding: 60px 50px;
+    }
+
+    .login-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .login-subtitle {
+        color: #7f8c8d;
+        margin-bottom: 30px;
+    }
+
+    .form-control {
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+
+    .input-group-text {
+        background: transparent;
+        border: 2px solid #e9ecef;
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+    }
+
+    .input-group .form-control {
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 20px 0;
+        position: relative;
+    }
+
+    .divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e9ecef;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 15px;
+        position: relative;
+        color: #7f8c8d;
+    }
+
+    .demo-accounts {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+        font-size: 0.9rem;
+    }
+
+    .demo-accounts h6 {
+        color: #2c3e50;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .demo-accounts p {
+        margin: 5px 0;
+        color: #495057;
+    }
+
+    .demo-accounts code {
+        background: white;
+        padding: 2px 8px;
+        border-radius: 5px;
+        color: #e74c3c;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="row g-0">
+            <!-- Left Side -->
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="login-left">
+                    <i class="fas fa-camera fa-4x mb-4"></i>
+                    <h2>CameraShop</h2>
+                    <p>Hệ thống quản lý bán máy ảnh chuyên nghiệp</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Quản lý sản phẩm dễ dàng</li>
+                        <li><i class="fas fa-check-circle"></i> Theo dõi đơn hàng realtime</li>
+                        <li><i class="fas fa-check-circle"></i> Báo cáo thống kê chi tiết</li>
+                        <li><i class="fas fa-check-circle"></i> Giao diện thân thiện</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="col-lg-7">
+                <div class="login-right">
+                    <h1 class="login-title">Đăng nhập</h1>
+                    <p class="login-subtitle">Chào mừng bạn quay trở lại!</p>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên đăng nhập</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" name="tenDangNhap" class="form-control" 
+                                       placeholder="Nhập tên đăng nhập" required autofocus />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" name="matKhau" class="form-control" 
+                                       placeholder="Nhập mật khẩu" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-login w-100">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </button>
+                    </form>
+
+                    <div class="divider">
+                        <span>hoặc</span>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="mb-0">
+                            Chưa có tài khoản? 
+                            <a asp-action="Register" class="fw-bold" style="color: #667eea;">Đăng ký ngay</a>
+                        </p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

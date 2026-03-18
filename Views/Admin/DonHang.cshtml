@@ -1,0 +1,134 @@
+﻿@model IEnumerable<Assigmemt_Thanh_C4.Models.DataModels.DonHang>
+
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-shopping-cart"></i> Danh sách đơn hàng
+    </div>
+    <div class="card-body">
+
+        <!-- Bộ lọc trạng thái -->
+        <div class="mb-3 d-flex flex-wrap gap-2">
+            <a asp-action="DonHang"
+               class="btn @(string.IsNullOrEmpty(ViewBag.TrangThai as string) && ViewBag.DaThanhToan == null ? "btn-primary" : "btn-outline-primary")">
+                <i class="fas fa-list"></i> Tất cả
+            </a>
+            <a asp-action="DonHang" asp-route-trangThai="Chờ xác nhận"
+               class="btn @(ViewBag.TrangThai == "Chờ xác nhận" ? "btn-warning" : "btn-outline-warning")">
+                <i class="fas fa-clock"></i> Chờ xác nhận
+            </a>
+            <a asp-action="DonHang" asp-route-trangThai="Đang giao"
+               class="btn @(ViewBag.TrangThai == "Đang giao" ? "btn-info" : "btn-outline-info")">
+                <i class="fas fa-truck"></i> Đang giao
+            </a>
+            <a asp-action="DonHang" asp-route-trangThai="Đã giao"
+               class="btn @(ViewBag.TrangThai == "Đã giao" ? "btn-success" : "btn-outline-success")">
+                <i class="fas fa-check"></i> Đã giao
+            </a>
+            <a asp-action="DonHang" asp-route-trangThai="Đã hủy"
+               class="btn @(ViewBag.TrangThai == "Đã hủy" ? "btn-danger" : "btn-outline-danger")">
+                <i class="fas fa-times"></i> Đã hủy
+            </a>
+            <span class="border-start mx-1"></span>
+            <a asp-action="DonHang" asp-route-daThanhToan="true"
+               class="btn @(ViewBag.DaThanhToan?.ToString() == "True" ? "btn-success" : "btn-outline-success")">
+                <i class="fas fa-check-circle"></i> Đã thanh toán
+            </a>
+            <a asp-action="DonHang" asp-route-daThanhToan="false"
+               class="btn @(ViewBag.DaThanhToan?.ToString() == "False" ? "btn-danger" : "btn-outline-danger")">
+                <i class="fas fa-times-circle"></i> Chưa thanh toán
+            </a>
+        </div>
+
+        <!-- Bảng đơn hàng -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã ĐH</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Số SP</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var soSP = item.ChiTietDonHangs?.Sum(c => c.SoLuong) ?? 0;
+
+                            <tr>
+                                <td><strong>#DH@item.DonHangID</strong></td>
+                                <td>
+                                    <strong>@item.NguoiDung?.HoTen</strong>
+                                    <br /><small class="text-muted">@item.NguoiDung?.Email</small>
+                                </td>
+                                <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@soSP</td>
+                                <td><strong>@item.TongTien.ToString("N0") đ</strong></td>
+
+                                <!-- Trạng thái đơn hàng -->
+                                <td>
+                                    @{
+                                        var (badgeClass, icon) = item.TrangThai switch
+                                        {
+                                            "Chờ xác nhận" => ("bg-warning text-dark", "fa-clock"),
+                                            "Đang giao" => ("bg-info", "fa-truck"),
+                                            "Đã giao" => ("bg-success", "fa-check"),
+                                            "Đã hủy" => ("bg-danger", "fa-times"),
+                                            _ => ("bg-secondary", "fa-question")
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">
+                                        <i class="fas @icon me-1"></i>@item.TrangThai
+                                    </span>
+                                </td>
+
+                                <!-- Thanh toán toggle - chỉ truyền id, controller tự toggle -->
+                                <td>
+                                    <form asp-action="CapNhatThanhToan" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.DonHangID" />
+                                        <input type="hidden" name="returnUrl" value="list" />
+                                        <button type="submit"
+                                                class="btn btn-sm @(item.DaThanhToan ? "btn-success" : "btn-outline-secondary")"
+                                                title="Nhấn để đổi trạng thái thanh toán">
+                                            <i class="fas @(item.DaThanhToan ? "fa-check-circle" : "fa-circle") me-1"></i>
+                                            @(item.DaThanhToan ? "Đã TT" : "Chưa TT")
+                                        </button>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <a asp-action="ChiTietDonHang" asp-route-id="@item.DonHangID"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                Không có đơn hàng nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

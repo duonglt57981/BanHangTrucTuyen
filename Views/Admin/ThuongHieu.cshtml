@@ -1,0 +1,103 @@
+﻿@using AssigmentC4_TrinhHuuThanh.Models.DataModels
+@model IEnumerable<ThuongHieu>
+
+@{
+    ViewData["Title"] = "Quản lý Thương hiệu";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-copyright"></i> Danh sách thương hiệu</span>
+        <a asp-action="ThemThuongHieu" class="btn btn-light btn-sm">
+            <i class="fas fa-plus"></i> Thêm thương hiệu
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Logo</th>
+                        <th>Tên thương hiệu</th>
+                        <th>Quốc gia</th>
+                        <th>Mô tả</th>
+                        <th>Số sản phẩm</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var soSanPham = item.SanPhams?.Count() ?? 0;
+                            <tr>
+                                <td>
+                                    @if (item.Logo != null && item.Logo.Length > 0)
+                                    {
+                                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Logo)"
+                                             alt="@item.TenThuongHieu"
+                                             style="max-width: 60px; max-height: 40px; object-fit: contain;" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-image fa-2x text-muted"></i>
+                                    }
+                                </td>
+                                <td>
+                                    <strong>@item.TenThuongHieu</strong>
+                                </td>
+                                <td>@item.QuocGia</td>
+                                <td>
+                                    <small>@item.MoTa</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">@soSanPham sản phẩm</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="SuaThuongHieu" asp-route-id="@item.ThuongHieuID"
+                                           class="btn btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger" title="Xóa"
+                                                onclick="confirmDelete(@item.ThuongHieuID, '@item.TenThuongHieu')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                Chưa có thương hiệu nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Form xóa ẩn -->
+<form id="deleteForm" method="post" asp-action="XoaThuongHieu" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="deleteId" name="id" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, name) {
+            if (confirm('Bạn có chắc muốn xóa thương hiệu "' + name + '"?\n\nLưu ý: Không thể xóa thương hiệu đang có sản phẩm.')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

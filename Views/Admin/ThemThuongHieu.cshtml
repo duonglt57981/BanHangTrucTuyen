@@ -1,0 +1,75 @@
+﻿@using AssigmentC4_TrinhHuuThanh.Models.DataModels
+@model ThuongHieu
+
+@{
+    ViewData["Title"] = "Thêm thương hiệu";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-plus"></i> Thêm thương hiệu mới
+    </div>
+    <div class="card-body">
+        <form asp-action="ThemThuongHieu" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="TenThuongHieu" class="form-label"></label>
+                    <input asp-for="TenThuongHieu" class="form-control" placeholder="VD: Canon, Sony, Nikon..." />
+                    <span asp-validation-for="TenThuongHieu" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="QuocGia" class="form-label"></label>
+                    <input asp-for="QuocGia" class="form-control" placeholder="VD: Nhật Bản, Hàn Quốc..." />
+                    <span asp-validation-for="QuocGia" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MoTa" class="form-label"></label>
+                <textarea asp-for="MoTa" class="form-control" rows="3"
+                          placeholder="Nhập mô tả về thương hiệu..."></textarea>
+                <span asp-validation-for="MoTa" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Logo thương hiệu</label>
+                <input type="file" name="logo" class="form-control" accept="image/*" onchange="previewImage(this)" />
+                <small class="text-muted">Chọn file ảnh logo (JPG, PNG, GIF)</small>
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <img id="preview" style="max-width: 200px; max-height: 200px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu thương hiệu
+                </button>
+                <a asp-action="ThuongHieu" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

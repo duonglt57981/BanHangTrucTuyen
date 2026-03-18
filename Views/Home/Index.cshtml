@@ -1,0 +1,1529 @@
+﻿@using Assigmemt_Thanh_C4.Models.DataModels
+@model IEnumerable<SanPham>
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    var danhMucs = ViewBag.DanhMucs as List<DanhMuc>
+                   ?? new List<DanhMuc>();
+}
+
+<style>
+    /* =========================================================
+           IMPORT FONTS
+        ========================================================= */
+    @@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    /* =========================================================
+           ROOT & RESET
+        ========================================================= */
+    :root {
+        --bg: #06080f;
+        --card-bg: rgba(14, 20, 38, 0.72);
+        --card-hover: rgba(20, 30, 55, 0.92);
+        --accent: #4f8ef7;
+        --text: #f0f4ff;
+        --muted: #7a8aaa;
+        --spring: cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* =========================================================
+           HERO
+        ========================================================= */
+    .cs-hero {
+        position: relative;
+        height: 520px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #fff;
+        margin-bottom: 0;
+    }
+
+        .cs-hero video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .cs-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(6,8,15,0.35) 0%, rgba(6,8,15,0.55) 70%, rgba(6,8,15,1) 100%);
+            z-index: 1;
+        }
+
+    .cs-hero-content {
+        position: relative;
+        z-index: 2;
+        padding: 0 1rem;
+    }
+
+    .cs-hero-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(3rem, 8vw, 6rem);
+        letter-spacing: 4px;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #fff 30%, #7ab0ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .cs-hero-sub {
+        font-family: 'DM Sans', sans-serif;
+        letter-spacing: 6px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.55);
+        margin-bottom: 1.8rem;
+    }
+
+    .cs-hero-search {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+        .cs-hero-search input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-right: none;
+            color: #fff;
+            padding: 0.75rem 1.2rem;
+            border-radius: 30px 0 0 30px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+            .cs-hero-search input::placeholder {
+                color: rgba(255,255,255,0.45);
+            }
+
+            .cs-hero-search input:focus {
+                background: rgba(255,255,255,0.15);
+                border-color: rgba(255,255,255,0.35);
+            }
+
+        .cs-hero-search button {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: 0.75rem 1.4rem;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+            .cs-hero-search button:hover {
+                background: #2e6fd8;
+            }
+
+
+    .cs-section {
+        background: var(--bg);
+        padding: 4rem 0 2rem;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .cs-section-label {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 5px;
+        color: var(--accent);
+        text-transform: uppercase;
+        text-align: center;
+        margin-bottom: 0.4rem;
+    }
+
+    .cs-section-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        letter-spacing: 2px;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* --- CARD GRID --- */
+    .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2.5rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    /* --- INDIVIDUAL CARD --- */
+    .cat-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.055);
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        height: 270px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        outline: none;
+        opacity: 0;
+        transform: translateY(28px);
+        animation: catFadeUp 0.55s ease-out forwards;
+        transition: transform 0.4s var(--spring), box-shadow 0.4s ease, background 0.3s ease, border-color 0.3s ease;
+    }
+
+        /* staggered entrance */
+        .cat-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .cat-card:nth-child(2) {
+            animation-delay: 0.13s;
+        }
+
+        .cat-card:nth-child(3) {
+            animation-delay: 0.21s;
+        }
+
+        .cat-card:nth-child(4) {
+            animation-delay: 0.29s;
+        }
+
+        .cat-card:nth-child(5) {
+            animation-delay: 0.37s;
+        }
+
+        .cat-card:nth-child(6) {
+            animation-delay: 0.45s;
+        }
+
+        .cat-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            background: var(--card-hover);
+            border-color: rgba(255,255,255,0.10);
+        }
+
+    /* Gradient banner */
+    .cat-card-banner {
+        height: 150px;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+        transition: height 0.35s var(--spring);
+    }
+
+        /* Shine sweep */
+        .cat-card-banner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.14), transparent);
+            transform: skewX(-18deg);
+            animation: catShine 7s infinite;
+        }
+
+    /* Big icon floating */
+    .cat-icon-wrap {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        width: 130px;
+        height: 130px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        pointer-events: none;
+        transition: transform 0.12s linear;
+    }
+
+        .cat-icon-wrap i {
+            font-size: 5rem;
+            filter: drop-shadow(0 12px 18px rgba(0,0,0,0.55));
+            color: rgba(255,255,255,0.92);
+            animation: catFloat 4s ease-in-out infinite;
+        }
+
+    .cat-card:nth-child(even) .cat-icon-wrap i {
+        animation-delay: -2s;
+    }
+
+    .cat-card:nth-child(3n) .cat-icon-wrap i {
+        animation-delay: -1s;
+    }
+
+    /* Card body */
+    .cat-card-body {
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        z-index: 5;
+    }
+
+    .cat-card-name {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.55rem;
+        letter-spacing: 0.5px;
+        color: var(--text);
+        margin-bottom: 0.2rem;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .cat-card-count {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        transition: color 0.2s;
+    }
+
+    .cat-card:hover .cat-card-count {
+        color: var(--accent);
+    }
+
+    /* Expanded details (hidden by default) */
+    .cat-details {
+        display: none;
+        padding: 0 1.4rem 1.2rem;
+        z-index: 5;
+        font-size: 0.88rem;
+        color: #9ab0d0;
+        line-height: 1.65;
+        animation: catFadeUp 0.45s ease 0.2s both;
+    }
+
+    /* ---- EXPANDED / MODAL STATE ---- */
+    .cat-card.expanded {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 200;
+        border-radius: 0;
+        cursor: default;
+        overflow-y: auto;
+        background: rgba(6,8,15,0.96);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transform: none !important;
+    }
+
+        .cat-card.expanded:hover {
+            transform: none;
+        }
+
+        .cat-card.expanded .cat-card-banner {
+            position: absolute;
+            inset: 0;
+            height: 100vh;
+            width: 100vw;
+            opacity: 0.12;
+            z-index: -1;
+        }
+
+        .cat-card.expanded .cat-icon-wrap {
+            position: relative;
+            top: auto;
+            right: auto;
+            width: 38vw;
+            max-width: 420px;
+            height: 55vh;
+        }
+
+            .cat-card.expanded .cat-icon-wrap i {
+                font-size: clamp(5rem, 12vw, 10rem);
+                animation: none;
+                transform: scale(1.1);
+            }
+
+        .cat-card.expanded .cat-card-body {
+            max-width: 560px;
+            padding: 2.5rem;
+            justify-content: center;
+        }
+
+        .cat-card.expanded .cat-card-name {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            line-height: 1;
+            margin-bottom: 0.8rem;
+        }
+
+        .cat-card.expanded .cat-card-count {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .cat-card.expanded .cat-details {
+            display: block;
+        }
+
+    /* Close button */
+    .cat-close {
+        position: fixed;
+        top: 1.8rem;
+        right: 2rem;
+        background: rgba(255,255,255,0.06);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s;
+        z-index: 210;
+    }
+
+        .cat-close:hover {
+            background: rgba(255,255,255,0.15);
+            transform: rotate(90deg) scale(1.1);
+            color: #f87171;
+        }
+
+    .cat-card.expanded .cat-close {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Product list inside expanded */
+    .cat-product-list {
+        margin-top: 1.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .cat-product-chip {
+        background: rgba(79,142,247,0.15);
+        border: 1px solid rgba(79,142,247,0.3);
+        color: #7ab0ff;
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+        .cat-product-chip:hover {
+            background: rgba(79,142,247,0.3);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+    .cat-view-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        background: var(--accent);
+        color: #fff;
+        padding: 0.7rem 1.6rem;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.25s;
+    }
+
+        .cat-view-all:hover {
+            background: #2e6fd8;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79,142,247,0.35);
+        }
+
+    body.cat-modal-open {
+        overflow: hidden;
+    }
+
+    /* =========================================================
+           PRODUCT SECTION (dưới category cards)
+        ========================================================= */
+    .prod-section {
+        background: var(--bg);
+        padding: 2rem 0 4rem;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .prod-toolbar {
+        max-width: 1200px;
+        margin: 0 auto 2rem;
+        padding: 0 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .prod-toolbar-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        letter-spacing: 1px;
+        color: var(--text);
+    }
+
+    .prod-toolbar-right {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .sort-pill {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--muted);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'DM Sans', sans-serif;
+        text-decoration: none;
+    }
+
+        .sort-pill:hover, .sort-pill.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+    /* Product grid */
+    .prod-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.8rem;
+    }
+
+    .prod-card {
+        background: var(--card-bg);
+        border: 1px solid rgba(255,255,255,0.055);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.3s var(--spring), box-shadow 0.3s ease, border-color 0.3s;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: catFadeUp 0.5s ease-out forwards;
+    }
+
+        .prod-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: rgba(79,142,247,0.25);
+        }
+
+    .prod-img {
+        height: 185px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(14,24,48,0.9), rgba(6,8,15,1));
+        position: relative;
+    }
+
+        .prod-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+    .prod-card:hover .prod-img img {
+        transform: scale(1.07);
+    }
+
+    .prod-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(239,68,68,0.9);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        backdrop-filter: blur(6px);
+    }
+
+        .prod-badge.out {
+            background: rgba(100,116,139,0.9);
+        }
+
+    .prod-body {
+        padding: 1rem 1.1rem 1.2rem;
+    }
+
+    .prod-cat {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.35rem;
+    }
+
+    .prod-name {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .prod-price {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.4rem;
+        letter-spacing: 0.5px;
+        color: #f87171;
+        margin-bottom: 0.25rem;
+    }
+
+    .prod-stock {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 0.9rem;
+    }
+
+        .prod-stock.ok {
+            color: #4ade80;
+        }
+
+        .prod-stock.low {
+            color: #fbbf24;
+        }
+
+    .prod-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .prod-btn-detail {
+        flex: 1;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.12);
+        color: var(--muted);
+        padding: 0.5rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+        .prod-btn-detail:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
+
+    .prod-btn-cart {
+        flex: 1;
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        padding: 0.5rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+        .prod-btn-cart:hover {
+            background: #2e6fd8;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(79,142,247,0.3);
+        }
+
+        .prod-btn-cart:disabled {
+            background: rgba(100,116,139,0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+    /* =========================================================
+           FEATURES ROW
+        ========================================================= */
+    .feat-row {
+        background: var(--bg);
+        padding: 3rem 0 4rem;
+        font-family: 'DM Sans', sans-serif;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .feat-grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 2rem;
+    }
+
+    .feat-item {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        border-radius: 14px;
+        background: rgba(14,20,38,0.5);
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: border-color 0.2s, transform 0.2s;
+    }
+
+        .feat-item:hover {
+            border-color: rgba(79,142,247,0.3);
+            transform: translateY(-4px);
+        }
+
+        .feat-item i {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+        }
+
+        .feat-item h5 {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+
+        .feat-item p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+    /* =========================================================
+           CHATBOT
+        ========================================================= */
+    .chatbot-toggle {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#4f8ef7,#764ba2);
+        border: none;
+        color: white;
+        font-size: 1.4rem;
+        cursor: pointer;
+        box-shadow: 0 5px 20px rgba(79,142,247,0.45);
+        transition: transform 0.3s;
+        z-index: 900;
+    }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.12);
+        }
+
+    .chatbot-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .chatbot-container {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 370px;
+        height: 530px;
+        background: #0d1524;
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+        border: 1px solid rgba(255,255,255,0.07);
+        display: flex;
+        flex-direction: column;
+        z-index: 900;
+    }
+
+    .chatbot-header {
+        background: linear-gradient(135deg,#4f8ef7,#764ba2);
+        color: white;
+        padding: 18px 20px;
+        border-radius: 18px 18px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chatbot-header-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .chatbot-header-info i {
+            font-size: 1.8rem;
+        }
+
+    .chatbot-close-btn {
+        background: rgba(255,255,255,0.15);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .chatbot-close-btn:hover {
+            background: rgba(255,255,255,0.28);
+            transform: rotate(90deg);
+        }
+
+    .chatbot-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        background: #0a1120;
+    }
+
+    .chatbot-message {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#4f8ef7,#764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+    }
+
+    .user-message .message-avatar {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .message-content {
+        background: rgba(255,255,255,0.06);
+        padding: 10px 13px;
+        border-radius: 12px;
+        max-width: 78%;
+        font-size: 0.85rem;
+        color: #c8d8f0;
+        font-family: 'DM Sans',sans-serif;
+    }
+
+    .user-message {
+        flex-direction: row-reverse;
+    }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg,#4f8ef7,#764ba2);
+            color: white;
+        }
+
+    .quick-replies {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .quick-reply {
+        background: rgba(79,142,247,0.1);
+        border: 1px solid rgba(79,142,247,0.3);
+        color: #7ab0ff;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+        font-family: 'DM Sans',sans-serif;
+    }
+
+        .quick-reply:hover {
+            background: rgba(79,142,247,0.25);
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+    .chatbot-input-area {
+        padding: 12px;
+        background: #0d1524;
+        border-radius: 0 0 18px 18px;
+        display: flex;
+        gap: 8px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .chatbot-input {
+        flex: 1;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 22px;
+        padding: 9px 16px;
+        font-size: 0.88rem;
+        outline: none;
+        transition: all 0.3s;
+        background: rgba(255,255,255,0.05);
+        color: #e2eaf8;
+        font-family: 'DM Sans',sans-serif;
+    }
+
+        .chatbot-input:focus {
+            border-color: var(--accent);
+        }
+
+    .chatbot-send-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#4f8ef7,#764ba2);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+        .chatbot-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 8px 2px;
+    }
+
+    .typing-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #4f8ef7;
+        animation: typing 1.4s infinite;
+    }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+    @@keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+
+        30% {
+            transform: translateY(-8px);
+        }
+    }
+
+    @@media(max-width:768px) {
+        .chatbot-container {
+            width: calc(100% - 36px);
+            right: 18px;
+            left: 18px;
+            bottom: 88px;
+        }
+    }
+
+    /* =========================================================
+           KEYFRAMES
+        ========================================================= */
+    @@keyframes catFadeUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes catShine {
+        0% {
+            left: -100%;
+        }
+
+        18% {
+            left: 200%;
+        }
+
+        100% {
+            left: 200%;
+        }
+    }
+
+    @@keyframes catFloat {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-11px);
+        }
+    }
+
+    /* View Transitions */
+    ::view-transition-old(active-cat),
+    ::view-transition-new(active-cat) {
+        animation-duration: 0.55s;
+        animation-timing-function: cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* =========================================================
+           MOBILE
+        ========================================================= */
+    @@media (max-width: 768px) {
+        .cat-card.expanded {
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+            .cat-card.expanded .cat-icon-wrap {
+                width: 100%;
+                height: 35vh;
+                margin-top: 4rem;
+            }
+
+            .cat-card.expanded .cat-card-body {
+                padding: 1.5rem;
+            }
+
+            .cat-card.expanded .cat-card-name {
+                font-size: 2.4rem;
+            }
+    }
+</style>
+
+<!-- ===================== HERO ===================== -->
+<div class="cs-hero">
+    <video autoplay muted loop playsinline>
+        <source src="@Url.Content("~/Videos/CameraBackGroundIndex.mp4")" type="video/mp4">
+    </video>
+    <div class="cs-hero-content">
+        <p class="cs-hero-sub">Khám phá bộ sưu tập</p>
+        <h1 class="cs-hero-title">Camera Shop</h1>
+        <form class="cs-hero-search" asp-action="Index" method="get">
+            <input name="searchString" value="@ViewBag.CurrentSearch"
+                   placeholder="Tìm máy ảnh, ống kính, phụ kiện..." />
+            <button type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== CATEGORY CARDS ===================== -->
+<section class="cs-section">
+    <p class="cs-section-label">Danh mục nổi bật</p>
+    <h2 class="cs-section-title">Chọn danh mục</h2>
+
+    <div class="cat-grid" id="catGrid">
+        @{
+            /* Màu gradient và icon cho từng danh mục */
+            var catColors = new[] {
+                "#1e40af,#0f172a",   // xanh navy
+                "#7c2d12,#0f172a",   // nâu đỏ
+                "#064e3b,#0f172a",   // xanh rừng
+                "#4c1d95,#0f172a",   // tím
+                "#92400e,#0f172a",   // vàng nâu
+                "#0e7490,#0f172a",   // xanh biển
+                };
+            var catIcons = new[] {
+                "fa-camera",
+                "fa-camera-retro",
+                "fa-video",
+                "fa-ruler-combined",
+                "fa-battery-full",
+                "fa-wifi",
+                };
+
+            /* Gán màu dựa theo DanhMucID để ổn định */
+            var danhMucDescriptions = new Dictionary<string, string>
+                {
+                { "máy ảnh",    "Máy ảnh DSLR, Mirrorless, compact từ các thương hiệu hàng đầu." },
+                { "ống kính",   "Ống kính góc rộng, tele, macro, prime cho mọi nhu cầu sáng tác." },
+                { "chân đế",    "Tripod, monopod, gorillapod giữ vững khung hình của bạn." },
+                { "phụ kiện",   "Túi đựng, pin, thẻ nhớ, bộ lọc và nhiều phụ kiện khác." },
+                { "đèn flash",  "Đèn flash rời, đèn studio chuyên nghiệp, bộ khuếch tán ánh sáng." },
+                { "drone",      "Máy bay không người lái ghi lại góc nhìn trên cao ấn tượng." },
+                };
+        }
+
+        @for (int i = 0; i < danhMucs.Count; i++)
+        {
+            var dm = danhMucs[i];
+            var color = catColors[i % catColors.Length];
+            var icon = catIcons[i % catIcons.Length];
+            var spCount = Model?.Count(s => s.DanhMucID == dm.DanhMucID) ?? 0;
+
+            /* tìm mô tả theo tên gần đúng */
+            var desc = danhMucDescriptions
+            .FirstOrDefault(kv => dm.TenDanhMuc.ToLower().Contains(kv.Key))
+            .Value ?? "Khám phá các sản phẩm chất lượng trong danh mục này.";
+
+            /* top 5 sản phẩm của danh mục */
+            var topSps = Model?.Where(s => s.DanhMucID == dm.DanhMucID).Take(5).ToList()
+            ?? new List<SanPham>();
+
+            <div class="cat-card" tabindex="0"
+                 data-dm-id="@dm.DanhMucID"
+                 onclick="toggleCatCard(this)"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCatCard(this);}">
+
+                <!-- Gradient banner -->
+                <div class="cat-card-banner"
+                     style="background: linear-gradient(135deg, @color)">
+                </div>
+
+                <!-- Floating icon -->
+                <div class="cat-icon-wrap">
+                    <i class="fas @icon"></i>
+                </div>
+
+                <!-- Card body -->
+                <div class="cat-card-body">
+                    <div class="cat-card-name">@dm.TenDanhMuc</div>
+                    <div class="cat-card-count">@spCount sản phẩm</div>
+                </div>
+
+                <!-- Expanded details -->
+                <div class="cat-details">
+                    <p>@desc</p>
+                    @if (topSps.Any())
+                    {
+                        <div class="cat-product-list">
+                            @foreach (var sp in topSps)
+                            {
+                                <a href="@Url.Action("Details", "Home", new { id = sp.SanPhamID })"
+                                   class="cat-product-chip"
+                                   onclick="event.stopPropagation()">
+                                    @sp.TenSanPham
+                                </a>
+                            }
+                        </div>
+                    }
+                    <a href="@Url.Action("Index", "Home", new { danhMucId = dm.DanhMucID })"
+                       class="cat-view-all" onclick="event.stopPropagation()">
+                        <i class="fas fa-arrow-right"></i> Xem tất cả @dm.TenDanhMuc
+                    </a>
+                </div>
+
+                <!-- Close button (only visible when expanded) -->
+                <button class="cat-close" onclick="event.stopPropagation(); toggleCatCard(this.closest('.cat-card'))"
+                        aria-label="Đóng">
+                    &times;
+                </button>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ===================== PRODUCTS ===================== -->
+<section class="prod-section">
+    <div class="prod-toolbar">
+        <div class="prod-toolbar-title">
+            @if (ViewBag.CurrentDanhMuc != null)
+            {
+                var activeDm = danhMucs.FirstOrDefault(d => d.DanhMucID == (int)ViewBag.CurrentDanhMuc);
+                <span>@(activeDm?.TenDanhMuc ?? "Sản phẩm")</span>
+            }
+            else
+            {
+                <span>Tất cả sản phẩm</span>
+            }
+        </div>
+        <div class="prod-toolbar-right">
+            <a asp-action="Index"
+               asp-route-danhMucId="@ViewBag.CurrentDanhMuc"
+               asp-route-searchString="@ViewBag.CurrentSearch"
+               asp-route-sortOrder=""
+               class="sort-pill @(string.IsNullOrEmpty(ViewBag.CurrentSort?.ToString()) ? "active" : "")">
+                Mới nhất
+            </a>
+            <a asp-action="Index"
+               asp-route-danhMucId="@ViewBag.CurrentDanhMuc"
+               asp-route-searchString="@ViewBag.CurrentSearch"
+               asp-route-sortOrder="price_asc"
+               class="sort-pill @(ViewBag.CurrentSort == "price_asc" ? "active" : "")">
+                Giá ↑
+            </a>
+            <a asp-action="Index"
+               asp-route-danhMucId="@ViewBag.CurrentDanhMuc"
+               asp-route-searchString="@ViewBag.CurrentSearch"
+               asp-route-sortOrder="price_desc"
+               class="sort-pill @(ViewBag.CurrentSort == "price_desc" ? "active" : "")">
+                Giá ↓
+            </a>
+            <a asp-action="Index"
+               asp-route-danhMucId="@ViewBag.CurrentDanhMuc"
+               asp-route-searchString="@ViewBag.CurrentSearch"
+               asp-route-sortOrder="name_asc"
+               class="sort-pill @(ViewBag.CurrentSort == "name_asc" ? "active" : "")">
+                A → Z
+            </a>
+        </div>
+    </div>
+
+    <div class="prod-grid">
+        @if (Model != null && Model.Any())
+        {
+            int pi = 0;
+            @foreach (var item in Model)
+            {
+                pi++;
+                var delay = (pi * 0.07).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                <div class="prod-card" style="animation-delay:@(delay)s"
+                     onclick="location.href='@Url.Action("Details", new { id = item.SanPhamID })'">
+
+                    <div class="prod-img">
+                        @if (item.HinhAnh != null && item.HinhAnh.Length > 0)
+                        {
+                            <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.HinhAnh)"
+                                 alt="@item.TenSanPham" />
+                        }
+                        else
+                        {
+                            <i class="fas fa-camera" style="font-size:3rem;color:#334155;"></i>
+                        }
+
+                        @if (item.TonKho <= 0)
+                        {
+                            <span class="prod-badge out">Hết hàng</span>
+                        }
+                        else if (item.TonKho < 10)
+                        {
+                            <span class="prod-badge"><i class="fas fa-fire"></i> Sắp hết</span>
+                        }
+                    </div>
+
+                    <div class="prod-body">
+                        <div class="prod-cat">@item.DanhMuc?.TenDanhMuc</div>
+                        <div class="prod-name">@item.TenSanPham</div>
+                        <div class="prod-price">@item.Gia.ToString("N0") đ</div>
+                        <div class="prod-stock @(item.TonKho >= 10 ? "ok" : item.TonKho > 0 ? "low" : "")">
+                            @if (item.TonKho <= 0)
+                            {
+                                <span><i class="fas fa-times-circle"></i> Hết hàng</span>
+                            }
+                            else if (item.TonKho < 10)
+                            {
+
+                                <span><i class="fas fa-exclamation-circle"></i> Còn @item.TonKho</span>
+                            }
+                            else
+                            {
+
+                                <span><i class="fas fa-check-circle"></i> Còn @item.TonKho</span>
+                            }
+                        </div>
+                        <div class="prod-actions">
+                            <a asp-action="Details" asp-route-id="@item.SanPhamID"
+                               class="prod-btn-detail" onclick="event.stopPropagation()">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </a>
+                            <button class="prod-btn-cart"
+                                    onclick="event.stopPropagation(); addToCart(@item.SanPhamID)"
+                                    @(item.TonKho <= 0 ? "disabled" : "")>
+                                <i class="fas fa-cart-plus"></i> Thêm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="grid-column:1/-1;text-align:center;padding:5rem 0;color:var(--muted);font-family:'DM Sans',sans-serif;">
+                <i class="fas fa-search" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>
+                <h4 style="color:var(--text);">Không tìm thấy sản phẩm nào</h4>
+                <p>Hãy thử tìm kiếm với từ khóa khác</p>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<div class="feat-row">
+    <div class="feat-grid">
+        <div class="feat-item">
+            <i class="fas fa-shipping-fast"></i>
+            <h5>Miễn phí vận chuyển</h5>
+            <p>Cho đơn hàng trên 5 triệu</p>
+        </div>
+        <div class="feat-item">
+            <i class="fas fa-shield-alt"></i>
+            <h5>Bảo hành chính hãng</h5>
+            <p>12 – 24 tháng</p>
+        </div>
+        <div class="feat-item">
+            <i class="fas fa-exchange-alt"></i>
+            <h5>Đổi trả dễ dàng</h5>
+            <p>Trong vòng 7 ngày</p>
+        </div>
+        <div class="feat-item">
+            <i class="fas fa-headset"></i>
+            <h5>Hỗ trợ 24/7</h5>
+            <p>Tư vấn nhiệt tình</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== CHATBOT ===================== -->
+<div id="chatbot-widget">
+    <button id="chatbot-toggle" class="chatbot-toggle">
+        <i class="fas fa-comments"></i>
+        <span class="chatbot-badge">1</span>
+    </button>
+    <div id="chatbot-container" class="chatbot-container" style="display:none;">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <i class="fas fa-robot"></i>
+                <div>
+                    <strong>Trợ lý AI</strong>
+                    <small class="d-block" style="opacity:.7;">Luôn sẵn sàng hỗ trợ</small>
+                </div>
+            </div>
+            <button id="chatbot-close" class="chatbot-close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatbot-messages" class="chatbot-messages">
+            <div class="chatbot-message bot-message">
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">
+                    Xin chào! 👋 Tôi là trợ lý AI của CameraShop. Bạn cần tôi giúp gì? 😊
+                    <div class="quick-replies">
+                        <button class="quick-reply" onclick="sendQuickReply('Tư vấn máy ảnh phù hợp cho người mới')">📷 Tư vấn máy ảnh</button>
+                        <button class="quick-reply" onclick="sendQuickReply('Có khuyến mãi gì không?')">🎁 Xem khuyến mãi</button>
+                        <button class="quick-reply" onclick="sendQuickReply('So sánh DSLR và Mirrorless')">🔍 So sánh máy ảnh</button>
+                        <button class="quick-reply" onclick="sendQuickReply('Chính sách bảo hành như thế nào?')">🛡️ Chính sách bảo hành</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Nhập câu hỏi..." />
+            <button id="chatbot-send" class="chatbot-send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        /* =========================================================
+           CATEGORY CARD TOGGLE (Jujutsu-style)
+        ========================================================= */
+        function toggleCatCard(card) {
+            const current = document.querySelector('.cat-card.expanded');
+            if (current && current !== card) return;
+
+            const expanding = !card.classList.contains('expanded');
+            const icon = card.querySelector('.cat-icon-wrap i');
+
+            if (expanding) icon.style.transform = '';
+
+            if (document.startViewTransition) {
+                card.style.viewTransitionName = 'active-cat';
+                const t = document.startViewTransition(() => {
+                    card.classList.toggle('expanded');
+                    document.body.classList.toggle('cat-modal-open', expanding);
+                });
+                t.finished.finally(() => {
+                    if (!card.classList.contains('expanded'))
+                        card.style.viewTransitionName = '';
+                });
+            } else {
+                card.classList.toggle('expanded');
+                document.body.classList.toggle('cat-modal-open', expanding);
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const exp = document.querySelector('.cat-card.expanded');
+                if (exp) toggleCatCard(exp);
+            }
+        });
+
+        /* Parallax on card hover */
+        document.querySelectorAll('.cat-card').forEach(card => {
+            const icon = card.querySelector('.cat-icon-wrap i');
+            card.addEventListener('mousemove', e => {
+                if (card.classList.contains('expanded')) return;
+                const r = card.getBoundingClientRect();
+                const x = (e.clientX - r.left) / r.width  - 0.5;
+                const y = (e.clientY - r.top)  / r.height - 0.5;
+                icon.style.transform =
+                    `perspective(800px) rotateY(${x*18}deg) rotateX(${-y*18}deg) translateZ(25px) scale(1.1)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                if (!card.classList.contains('expanded')) icon.style.transform = '';
+            });
+        });
+
+        /* =========================================================
+           ADD TO CART
+        ========================================================= */
+        function addToCart(id) {
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `sanPhamId=${id}&soLuong=1`
+            })
+            .then(r => r.json())
+            .then(d => {
+                showToast(d.message, d.success ? 'ok' : 'err');
+                if (d.success) {
+                    const b = document.querySelector('.cart-badge');
+                    if (b) b.textContent = d.cartCount;
+                }
+            });
+        }
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            t.style.cssText =
+                `position:fixed;top:20px;right:20px;z-index:9999;min-width:280px;
+                 padding:12px 18px;border-radius:12px;font-family:'DM Sans',sans-serif;
+                 font-size:0.9rem;color:#fff;backdrop-filter:blur(10px);
+                 background:${type==='ok' ? 'rgba(30,90,200,0.9)' : 'rgba(200,40,40,0.9)'};
+                 box-shadow:0 8px 24px rgba(0,0,0,0.35);
+                 animation:catFadeUp 0.3s ease;`;
+            t.innerHTML = `<i class="fas fa-${type==='ok'?'check-circle':'exclamation-circle'}"></i> ${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2800);
+        }
+
+        /* =========================================================
+           CHATBOT
+        ========================================================= */
+        const chatToggle    = document.getElementById('chatbot-toggle');
+        const chatContainer = document.getElementById('chatbot-container');
+        const chatClose     = document.getElementById('chatbot-close');
+        const chatInput     = document.getElementById('chatbot-input');
+        const chatSend      = document.getElementById('chatbot-send');
+        const chatMessages  = document.getElementById('chatbot-messages');
+
+        chatToggle.addEventListener('click', () => {
+            chatContainer.style.display = chatContainer.style.display === 'none' ? 'flex' : 'none';
+            document.querySelector('.chatbot-badge').style.display = 'none';
+        });
+        chatClose.addEventListener('click', () => { chatContainer.style.display = 'none'; });
+
+        async function sendMessage(text) {
+            if (!text.trim()) return;
+            appendMsg('user', text);
+            chatInput.value = '';
+            const tid = showTyping();
+            try {
+                const r = await fetch('@Url.Action("GetResponse", "Chat")', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({message:text})
+                });
+                const d = await r.json();
+                removeTyping(tid);
+                appendMsg('bot', d.success ? d.reply : 'Lỗi: ' + d.reply);
+            } catch {
+                removeTyping(tid);
+                appendMsg('bot','Không thể kết nối với máy chủ.');
+            }
+        }
+
+        chatSend.addEventListener('click', () => sendMessage(chatInput.value));
+        chatInput.addEventListener('keypress', e => { if (e.key==='Enter') sendMessage(chatInput.value); });
+        window.sendQuickReply = t => sendMessage(t);
+
+        function appendMsg(sender, text) {
+            const d = document.createElement('div');
+            d.className = `chatbot-message ${sender}-message`;
+            d.innerHTML = `<div class="message-avatar"><i class="fas fa-${sender==='bot'?'robot':'user'}"></i></div>
+                           <div class="message-content">${text}</div>`;
+            chatMessages.appendChild(d);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const id = 'ty-' + Date.now();
+            const d = document.createElement('div');
+            d.id = id; d.className = 'chatbot-message bot-message';
+            d.innerHTML = `<div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content"><div class="typing-indicator">
+                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                </div></div>`;
+            chatMessages.appendChild(d);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function removeTyping(id) { document.getElementById(id)?.remove(); }
+    </script>
+}

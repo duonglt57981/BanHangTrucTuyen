@@ -1,0 +1,87 @@
+﻿@model IEnumerable<Assigmemt_Thanh_C4.Models.DataModels.DanhMuc>
+
+@{
+    ViewData["Title"] = "Quản lý Danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-th-large"></i> Danh sách danh mục</span>
+        <a asp-action="ThemDanhMuc" class="btn btn-light btn-sm">
+            <i class="fas fa-plus"></i> Thêm danh mục
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên danh mục</th>
+                        <th>Mô tả</th>
+                        <th>Số sản phẩm</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var soSanPham = item.SanPhams?.Count() ?? 0;
+                            <tr>
+                                <td><strong>@item.DanhMucID</strong></td>
+                                <td>
+                                    <strong>@item.TenDanhMuc</strong>
+                                </td>
+                                <td>@item.MoTa</td>
+                                <td>
+                                    <span class="badge bg-primary">@soSanPham sản phẩm</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="SuaDanhMuc" asp-route-id="@item.DanhMucID" 
+                                           class="btn btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger" title="Xóa"
+                                                onclick="confirmDelete(@item.DanhMucID, '@item.TenDanhMuc')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                Chưa có danh mục nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Form xóa ẩn -->
+<form id="deleteForm" method="post" asp-action="XoaDanhMuc" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="deleteId" name="id" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, name) {
+            if (confirm('Bạn có chắc muốn xóa danh mục "' + name + '"?\n\nLưu ý: Không thể xóa danh mục đang có sản phẩm.')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

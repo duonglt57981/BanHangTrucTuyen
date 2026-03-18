@@ -1,0 +1,57 @@
+﻿@model Assigmemt_Thanh_C4.Models.DataModels.DonHang
+
+<div class="container py-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-primary">
+                <i class="fas fa-truck"></i> Lộ trình đơn hàng #@Model.DonHangID
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 border-end">
+                    <h6>Trạng thái hiện tại: 
+                        <span class="badge bg-info text-dark">@Model.TrangThai</span>
+                    </h6>
+                    <p class="small text-muted">Phương thức: @Model.PhuongThucThanhToan</p>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="position-relative ms-3">
+                        @if (Model.TheoDoiDonHangs != null && Model.TheoDoiDonHangs.Any())
+                        {
+                            @foreach (var step in Model.TheoDoiDonHangs.OrderByDescending(x => x.ThoiGian))
+                            {
+                                <div class="d-flex mb-4 position-relative">
+                                    <div class="text-center" style="width: 40px;">
+                                        <div class="rounded-circle bg-primary d-inline-block" style="width: 12px; height: 12px; z-index: 2; position: relative;"></div>
+                                        <div class="h-100 bg-light position-absolute" style="width: 2px; left: 19px; top: 12px;"></div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <div class="fw-bold">@step.MoTa</div>
+                                        <div class="small text-muted">@step.ThoiGian.ToString("dd/MM/yyyy HH:mm")</div>
+                                        @if (!string.IsNullOrEmpty(step.ViTri)) {
+                                            <div class="small"><i class="fas fa-map-marker-alt"></i> @step.ViTri</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted italic">Đơn hàng đang trong quá trình chuẩn bị, chưa có thông tin lộ trình.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-light text-end">
+            <a asp-action="Index" class="btn btn-secondary btn-sm">Quay lại trang chủ</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS để xóa đường kẻ cuối cùng của timeline */
+    .d-flex:last-child .h-100 { display: none; }
+</style>
